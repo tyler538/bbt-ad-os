@@ -1,0 +1,2599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BBT Ad Operating System v2</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f2;color:#1a1a1a;display:flex;min-height:100vh;font-size:14px}
+
+/* SIDEBAR */
+.sidebar{width:248px;min-width:248px;background:#fff;border-right:1px solid #e0e0d8;display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:10}
+.sidebar-header{padding:1.25rem 1rem .875rem;border-bottom:1px solid #e0e0d8}
+.sidebar-header h1{font-size:15px;font-weight:600}
+.sidebar-header p{font-size:11px;color:#999;margin-top:2px}
+.prog-pill{display:inline-block;margin-top:6px;font-size:11px;font-weight:600;padding:2px 10px;border-radius:20px;background:#f0f0ea;color:#555}
+.prog-pill.active-prog{background:#1a1a1a;color:#fff}
+.nav-section{padding:.375rem 0}
+.nav-label{font-size:10px;font-weight:600;color:#bbb;text-transform:uppercase;letter-spacing:.08em;padding:.5rem 1rem .2rem}
+.nav-item{display:flex;align-items:center;gap:8px;padding:6px 1rem;cursor:pointer;font-size:13px;color:#666;border-left:2px solid transparent;transition:.1s}
+.nav-item:hover{color:#1a1a1a;background:#f8f8f5}
+.nav-item.active{color:#1a1a1a;border-left-color:#1a1a1a;background:#f5f5f2;font-weight:500}
+.step-num{width:20px;height:20px;border-radius:50%;background:#f0f0ea;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#888;transition:.15s}
+.step-num.done{background:#27500A;color:#EAF3DE}
+.step-num.active-num{background:#1a1a1a;color:#fff}
+.progress-wrap{padding:.75rem 1rem .25rem}
+.progress-bar{background:#f0f0ea;border-radius:4px;height:3px}
+.progress-fill{height:3px;border-radius:4px;background:#1a1a1a;transition:.3s;width:0%}
+.progress-text{font-size:11px;color:#bbb;margin-top:5px}
+
+/* MAIN */
+.main{margin-left:248px;flex:1;padding:2rem 2.5rem;max-width:860px}
+.step-page{display:none}.step-page.active{display:block}
+.page-header{margin-bottom:1.5rem}
+.step-tag{font-size:11px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.page-header h2{font-size:21px;font-weight:500;margin-bottom:5px}
+.page-header p{font-size:13px;color:#666;line-height:1.65}
+
+/* PROGRAM INTELLIGENCE CARD */
+.prog-card{border-radius:12px;padding:1.125rem 1.25rem;margin-bottom:14px;border:1px solid transparent}
+.prog-card.p1{background:#E6F1FB;border-color:#b5d4f4}.prog-card.p1 .prog-label{color:#185FA5}
+.prog-card.p2{background:#FAEEDA;border-color:#f5c96e}.prog-card.p2 .prog-label{color:#854F0B}
+.prog-card.p3{background:#EEEDFE;border-color:#afa9ec}.prog-card.p3 .prog-label{color:#534AB7}
+.prog-card.p4{background:#f0f0ea;border-color:#c8c8be}.prog-card.p4 .prog-label{color:#444}
+.prog-card.p5{background:#EAF3DE;border-color:#b8db88}.prog-card.p5 .prog-label{color:#3B6D11}
+.prog-card.p6{background:#FAECE7;border-color:#f0b89a}.prog-card.p6 .prog-label{color:#712B13}
+.prog-card.p7{background:#FBEAF0;border-color:#ed93b1}.prog-card.p7 .prog-label{color:#72243E}
+.prog-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.prog-name{font-size:16px;font-weight:600;margin-bottom:8px}
+.prog-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}
+.prog-stat{background:rgba(255,255,255,.7);border-radius:7px;padding:7px 10px}
+.prog-stat-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:#888;margin-bottom:2px}
+.prog-stat-val{font-size:12px;font-weight:500;color:#1a1a1a;line-height:1.4}
+.positioning-box{margin-top:10px;background:rgba(255,255,255,.6);border-radius:7px;padding:8px 10px;font-size:12px;line-height:1.65;color:#333}
+.positioning-box strong{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:#888;margin-bottom:3px}
+
+/* CARDS */
+.card{background:#fff;border:1px solid #e8e8e0;border-radius:12px;padding:1.25rem;margin-bottom:12px}
+.card-title{font-size:11px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+.info-box{background:#f8f8f5;border:1px solid #e0e0d8;border-left:3px solid #888;border-radius:0 7px 7px 0;padding:.75rem 1rem;font-size:13px;color:#555;line-height:1.65;margin-bottom:10px}
+.warn-box{background:#FAEEDA;border:1px solid #e8c87a;border-left:3px solid #BA7517;border-radius:0 7px 7px 0;padding:.75rem 1rem;font-size:13px;color:#633806;line-height:1.65;margin-bottom:10px}
+.good-box{background:#EAF3DE;border:1px solid #a8cc7a;border-left:3px solid #3B6D11;border-radius:0 7px 7px 0;padding:.75rem 1rem;font-size:13px;color:#27500A;line-height:1.65;margin-bottom:10px}
+.danger-box{background:#FCEBEB;border:1px solid #f09595;border-left:3px solid #A32D2D;border-radius:0 7px 7px 0;padding:.75rem 1rem;font-size:13px;color:#A32D2D;line-height:1.65;margin-bottom:10px}
+
+/* FORM */
+.field{margin-bottom:12px}
+.field label{font-size:12px;font-weight:500;color:#555;display:block;margin-bottom:4px}
+.field .hint{font-size:11px;color:#999;margin-bottom:4px;line-height:1.5}
+input[type=text],select,textarea{width:100%;font-size:13px;padding:8px 10px;border:1px solid #ddd;border-radius:7px;background:#fff;color:#1a1a1a;font-family:inherit;transition:.1s}
+input[type=text]:focus,select:focus,textarea:focus{outline:none;border-color:#888}
+textarea{resize:vertical;min-height:70px;line-height:1.6}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+
+/* OPTION CARDS */
+.option-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.option-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px}
+.option-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px}
+.opt{border:1px solid #e0e0d8;border-radius:8px;padding:.875rem;cursor:pointer;transition:.15s;background:#fff}
+.opt:hover{border-color:#aaa;background:#fafafa}
+.opt.sel{border:2px solid #1a1a1a;background:#fafafa}
+.opt.sel-green{border:2px solid #3B6D11;background:#EAF3DE}
+.opt.danger{border-color:#f09595}
+.opt.danger.sel{border:2px solid #A32D2D;background:#FCEBEB}
+.opt h4{font-size:13px;font-weight:500;margin-bottom:3px}
+.opt p{font-size:11px;color:#777;line-height:1.5}
+.opt .rec{font-size:11px;font-weight:600;color:#27500A;margin-top:5px}
+.opt .avoid{font-size:11px;font-weight:600;color:#A32D2D;margin-top:5px}
+.opt .note{font-size:11px;color:#666;margin-top:4px}
+
+/* TAG TOGGLES */
+.tag-group{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px}
+.tag{display:inline-block;border:1px solid #ddd;border-radius:20px;padding:4px 12px;font-size:12px;cursor:pointer;background:#fff;transition:.1s;user-select:none}
+.tag:hover{border-color:#aaa;background:#f8f8f5}
+.tag.sel{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.tag.auto{background:#f0f0ea;border-color:#ccc;color:#555;cursor:default}
+.tag.auto.sel{background:#EAF3DE;border-color:#a8cc7a;color:#27500A}
+
+/* ZIP GRID */
+.zip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:7px;margin-top:8px}
+.zip-item{display:flex;align-items:center;gap:8px;border:1px solid #e0e0d8;border-radius:8px;padding:8px 11px;cursor:pointer;transition:.1s;font-size:13px;background:#fff}
+.zip-item:hover{border-color:#aaa}
+.zip-item.sel{border-color:#1a1a1a;background:#fafafa;font-weight:500}
+.zip-item.auto-sel{border-color:#3B6D11;background:#EAF3DE}
+.zip-item input[type=checkbox]{width:14px;height:14px;accent-color:#1a1a1a;flex-shrink:0;pointer-events:none}
+.zip-code{font-weight:600;font-size:12px;min-width:44px;color:#1a1a1a}
+.zip-name{font-size:11px;color:#666;line-height:1.3}
+.zip-badge{font-size:10px;font-weight:600;padding:1px 6px;border-radius:4px;margin-left:auto;flex-shrink:0}
+.zip-badge.core{background:#EAF3DE;color:#27500A}
+.zip-badge.bonus{background:#f0f0ea;color:#666}
+.zip-badge.avoid{background:#FCEBEB;color:#A32D2D}
+
+/* CHECKLIST */
+.cl-section{font-size:10px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.06em;padding:10px 0 4px;margin-top:2px}
+.cl-item{display:flex;align-items:flex-start;gap:9px;padding:8px 0;border-bottom:1px solid #f0f0ea;cursor:pointer}
+.cl-item:last-child{border-bottom:none}
+.cl-item input[type=checkbox]{width:15px;height:15px;flex-shrink:0;margin-top:1px;cursor:pointer;accent-color:#1a1a1a}
+.cl-item label{font-size:13px;color:#333;line-height:1.5;cursor:pointer}
+.cl-item.checked label{color:#bbb;text-decoration:line-through}
+
+/* NAMING */
+.name-preview{background:#f0f0ea;border-radius:7px;padding:.75rem 1rem;font-size:12px;font-family:'Courier New',monospace;color:#1a1a1a;word-break:break-all;line-height:1.7;margin-top:5px;min-height:36px}
+
+/* SUMMARY */
+.sum-row{display:flex;gap:8px;padding:6px 0;border-bottom:1px solid #f5f5f2;font-size:13px}
+.sum-row:last-child{border-bottom:none}
+.sum-key{font-weight:500;color:#666;min-width:170px;flex-shrink:0;font-size:12px}
+.sum-val{color:#1a1a1a}
+.sum-section{font-size:10px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.06em;padding:10px 0 4px;margin-top:4px}
+
+/* BUTTONS */
+.btn-row{display:flex;gap:8px;margin-top:1.5rem;flex-wrap:wrap;align-items:center}
+.btn{padding:8px 20px;border:1px solid #ddd;border-radius:7px;background:#fff;color:#1a1a1a;font-size:13px;cursor:pointer;font-family:inherit;transition:.1s}
+.btn:hover{background:#f0f0ea;border-color:#bbb}
+.btn-primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.btn-primary:hover{opacity:.85;background:#1a1a1a}
+.btn-sm{padding:5px 13px;font-size:12px}
+
+/* LAUNCH BANNER */
+.launch-banner{background:#EAF3DE;border:1px solid #a8cc7a;border-radius:8px;padding:.875rem 1rem;display:flex;align-items:center;gap:10px;font-size:13px;color:#27500A;font-weight:500;margin-bottom:1rem;display:none}
+
+/* BADGES */
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:5px;font-weight:500}
+.bg{background:#EAF3DE;color:#27500A}
+.ba{background:#FAEEDA;color:#633806}
+.br{background:#FCEBEB;color:#A32D2D}
+.bb{background:#E6F1FB;color:#0C447C}
+.bp{background:#EEEDFE;color:#3C3489}
+.bgr{background:#f0f0ea;color:#555}
+
+/* HOOK CARDS */
+.hook-card{border:1px solid #e0e0d8;border-radius:8px;padding:.75rem 1rem;cursor:pointer;transition:.15s;font-size:13px;line-height:1.5;margin-bottom:6px;background:#fff}
+.hook-card:hover{border-color:#aaa;background:#fafafa}
+.hook-card.sel{border-color:#1a1a1a;background:#fafafa;font-weight:500}
+
+/* PERFORMANCE TRACKER */
+.tracker-table{width:100%;font-size:12px;border-collapse:collapse}
+.tracker-table th{text-align:left;font-size:10px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.04em;padding:7px 8px;border-bottom:1px solid #e8e8e0}
+.tracker-table td{padding:9px 8px;border-bottom:1px solid #f5f5f2;color:#1a1a1a;vertical-align:middle}
+.tracker-table tr:last-child td{border-bottom:none}
+.empty-state{font-size:13px;color:#bbb;padding:.5rem 0}
+
+/* OPTIMIZATION CADENCE */
+.cadence-day{border:1px solid #e0e0d8;border-radius:8px;padding:.875rem;margin-bottom:8px;background:#fff}
+.cadence-day h4{font-size:13px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.cadence-day ul{list-style:none;padding:0}
+.cadence-day ul li{font-size:12px;color:#555;padding:3px 0;line-height:1.5;padding-left:14px;position:relative}
+.cadence-day ul li:before{content:'→';position:absolute;left:0;color:#bbb}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <h1>BBT Ad OS</h1>
+    <p>Facebook & Instagram · Local Market</p>
+    <div id="active-prog-pill" class="prog-pill">No program selected</div>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
+    <div class="progress-text" id="prog-text">0 of 12 steps complete</div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Program Selection</div>
+    <div class="nav-item active" onclick="goTo(0)" id="nav-0"><span class="step-num active-num" id="sn-0">1</span>Choose program</div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Campaign Setup</div>
+    <div class="nav-item" onclick="goTo(1)" id="nav-1"><span class="step-num" id="sn-1">2</span>Campaign brief</div>
+    <div class="nav-item" onclick="goTo(2)" id="nav-2"><span class="step-num" id="sn-2">3</span>Objective & budget</div>
+    <div class="nav-item" onclick="goTo(3)" id="nav-3"><span class="step-num" id="sn-3">4</span>Tracking & pixel</div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Audience (Ad Set)</div>
+    <div class="nav-item" onclick="goTo(4)" id="nav-4"><span class="step-num" id="sn-4">5</span>Location & ZIP codes</div>
+    <div class="nav-item" onclick="goTo(5)" id="nav-5"><span class="step-num" id="sn-5">6</span>Age, gender & interests</div>
+    <div class="nav-item" onclick="goTo(6)" id="nav-6"><span class="step-num" id="sn-6">7</span>Placements & devices</div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Creative & Copy</div>
+    <div class="nav-item" onclick="goTo(7)" id="nav-7"><span class="step-num" id="sn-7">8</span>Ad style & hook</div>
+    <div class="nav-item" onclick="goTo(8)" id="nav-8"><span class="step-num" id="sn-8">9</span>Copy & CTA</div>
+    <div class="nav-item" onclick="goTo(9)" id="nav-9"><span class="step-num" id="sn-9">10</span>Creative format</div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">Launch</div>
+    <div class="nav-item" onclick="goTo(10)" id="nav-10"><span class="step-num" id="sn-10">11</span>Summary & naming</div>
+    <div class="nav-item" onclick="goTo(11)" id="nav-11"><span class="step-num" id="sn-11">12</span>Pre-launch QA</div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">After Launch</div>
+    <div class="nav-item" onclick="goTo(12)" id="nav-12"><span class="step-num" id="sn-12">→</span>Optimization cadence</div>
+    <div class="nav-item" onclick="goTo(13)" id="nav-13"><span class="step-num" id="sn-13">→</span>Ad tracker</div>
+    <div class="nav-item" onclick="goTo(14)" id="nav-14"><span class="step-num" id="sn-14">★</span>Meta execution recipe</div>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- ==================== STEP 0: CHOOSE PROGRAM ==================== -->
+<div class="step-page active" id="page-0">
+  <div class="page-header">
+    <div class="step-tag">Step 1 of 12 · Program Selection</div>
+    <h2>Choose your BBT program</h2>
+    <p>Every decision in this system — radius, audience, angle, budget — flows from which program you're advertising. Select first.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Select program</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" id="program-selector">
+
+      <div class="opt" id="prog-p1" onclick="selectProgram('p1')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+          <span class="badge bb">P1</span><span class="badge bgr">Digital · National</span>
+        </div>
+        <h4>BBT PushPlay</h4>
+        <p>App-based program. Entry into the BBT ecosystem. No geographic limits.</p>
+        <div class="note">Entry: Low monthly subscription · $20–$50/mo</div>
+      </div>
+
+      <div class="opt" id="prog-p2" onclick="selectProgram('p2')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+          <span class="badge ba">P2</span><span class="badge bgr">Local · 10mi</span>
+        </div>
+        <h4>BBT Challenges</h4>
+        <p>Time-limited, event-driven. Best volume lead generator. Ascension vehicle into P3–P7.</p>
+        <div class="note">Entry: Paid challenge $99–$199 or lead magnet → upsell</div>
+      </div>
+
+      <div class="opt" id="prog-p3" onclick="selectProgram('p3')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+          <span class="badge bp">P3</span><span class="badge bgr">Regional · 30mi</span>
+        </div>
+        <h4>BBT Accountability</h4>
+        <p>Most unique BBT program. Hardest to find elsewhere. Women who've failed solo.</p>
+        <div class="note">Entry: Free consultation / strategy call</div>
+      </div>
+
+      <div class="opt" id="prog-p4" onclick="selectProgram('p4')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+          <span class="badge bgr">P4</span><span class="badge br">Commodity · 5–7mi only</span>
+        </div>
+        <h4>BBT Conditioning</h4>
+        <p>Broad group fitness. Compete on energy, community, and coaching — NOT convenience.</p>
+        <div class="note">Entry: Direct sign-up at full price</div>
+      </div>
+
+      <div class="opt" id="prog-p5" onclick="selectProgram('p5')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+          <span class="badge bg">P5</span><span class="badge bgr">Local · 10mi</span>
+        </div>
+        <h4>BBT Strength & Conditioning</h4>
+        <p>Differentiated and niche. For people who've outgrown group classes. Serious buyers.</p>
+        <div class="note">Entry: Free intro / consult session</div>
+      </div>
+
+      <div class="opt" id="prog-p6" onclick="selectProgram('p6')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+          <span class="badge" style="background:#FAECE7;color:#712B13">P6</span><span class="badge bgr">Premium · 12–15mi</span>
+        </div>
+        <h4>BBT Small Groups</h4>
+        <p>Premium, relationship-driven. High-achievers who need elite coaching in a tight group.</p>
+        <div class="note">Entry: Application / consultation</div>
+      </div>
+
+      <div class="opt" id="prog-p7" onclick="selectProgram('p7')" style="grid-column:span 2">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+          <span class="badge" style="background:#FBEAF0;color:#72243E">P7</span><span class="badge bgr">Elite · 15–20mi</span>
+        </div>
+        <h4>BBT Personalized Performance</h4>
+        <p>Highest tier. Private/semi-private coaching. For people who need the most results and want the highest level of personalization. Worth the drive from anywhere.</p>
+        <div class="note">Entry: Application / discovery call</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="prog-detail-card" style="display:none"></div>
+
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="nextStep(0)">Next: Campaign brief →</button>
+  </div>
+</div>
+
+<!-- ==================== STEP 1: CAMPAIGN BRIEF ==================== -->
+<div class="step-page" id="page-1">
+  <div class="page-header">
+    <div class="step-tag">Step 2 of 12 · Campaign Setup</div>
+    <h2>Campaign brief</h2>
+    <p>Define every detail of this campaign before touching Ads Manager. Everything here flows into your naming, recipe, and summary.</p>
+  </div>
+
+  <div id="brief-prog-card"></div>
+
+  <!-- FUNNEL STAGE -->
+  <div class="card">
+    <div class="card-title">Funnel stage</div>
+    <div class="hint" style="margin-bottom:10px">Pre-recommended based on your program. Confirm before proceeding — funnel stage controls your objective, copy tone, and CTA.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px" id="funnel-selector">
+      <div class="opt" id="fn-TOFU" onclick="selectFunnel('TOFU')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px"><span class="badge bb">TOFU</span><span class="badge bgr" style="font-size:10px">Top of Funnel</span></div>
+        <h4>Awareness</h4>
+        <p>New, cold audiences who don't know BBT yet. Goal: stop the scroll, build familiarity, generate leads for retargeting.</p>
+        <div class="rec" id="fn-TOFU-rec" style="display:none">✓ Recommended for this program</div>
+      </div>
+      <div class="opt" id="fn-MOFU" onclick="selectFunnel('MOFU')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px"><span class="badge ba">MOFU</span><span class="badge bgr" style="font-size:10px">Middle of Funnel</span></div>
+        <h4>Consideration</h4>
+        <p>Warm audiences — IG engagers, website visitors, video viewers. Goal: educate, build trust, move to action.</p>
+        <div class="rec" id="fn-MOFU-rec" style="display:none">✓ Recommended for this program</div>
+      </div>
+      <div class="opt" id="fn-BOFU" onclick="selectFunnel('BOFU')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px"><span class="badge br">BOFU</span><span class="badge bgr" style="font-size:10px">Bottom of Funnel</span></div>
+        <h4>Conversion</h4>
+        <p>Hot leads, past inquiries, retarget list. Goal: remove friction, create urgency, close the decision.</p>
+        <div class="rec" id="fn-BOFU-rec" style="display:none">✓ Recommended for this program</div>
+      </div>
+    </div>
+    <div id="funnel-guidance" class="info-box" style="margin-top:10px;display:none"></div>
+  </div>
+
+  <!-- PRIMARY GOAL -->
+  <div class="card">
+    <div class="card-title">Primary goal</div>
+    <div class="hint" style="margin-bottom:10px">Smart recommendations load based on your program and funnel stage. Pick the one that matches what you want this campaign to do.</div>
+    <div id="goal-options" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px"></div>
+    <div id="goal-warning" style="display:none;margin-top:8px"></div>
+  </div>
+
+  <!-- TEST TYPE / CAMPAIGN STRUCTURE -->
+  <div class="card">
+    <div class="card-title">Test type & campaign structure</div>
+    <div class="hint" style="margin-bottom:10px">What kind of campaign run is this? This determines how long to let it run, what to measure, and when to make decisions.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="test-selector">
+      <div class="opt" id="test-probe" onclick="selectTest('probe')">
+        <div style="margin-bottom:5px"><span class="badge bb">1 week</span></div>
+        <h4>Proof of concept / probe</h4>
+        <p>Quick $70–$140 spend test. Validates hook and audience before committing. Check CTR only — not CPL yet.</p>
+        <div class="note">Kill if CTR below 0.8% at 2k impressions. Keep if above 1%.</div>
+      </div>
+      <div class="opt" id="test-ramp" onclick="selectTest('ramp')">
+        <div style="margin-bottom:5px"><span class="badge ba">2–4 weeks</span></div>
+        <h4>Full ramp / learning phase</h4>
+        <p>Standard campaign run. Lets Meta exit learning phase (50 conversions) and optimize delivery properly.</p>
+        <div class="rec">✓ Recommended for most BBT campaigns</div>
+      </div>
+      <div class="opt" id="test-challenge" onclick="selectTest('challenge')">
+        <div style="margin-bottom:5px"><span class="badge bp">Fixed dates</span></div>
+        <h4>Challenge / event campaign</h4>
+        <p>Hard start and end date tied to a P2 Challenge. Urgency-driven. Budget front-loads toward launch.</p>
+        <div class="note">P2 Challenges only. Set exact start/end dates.</div>
+      </div>
+      <div class="opt" id="test-evergreen" onclick="selectTest('evergreen')">
+        <div style="margin-bottom:5px"><span class="badge bg">Ongoing</span></div>
+        <h4>Evergreen / always-on</h4>
+        <p>Continuous awareness campaign with no end date. Refresh creative every 2–4 weeks to fight fatigue.</p>
+        <div class="note">Best for P3 Accountability and P4 Conditioning TOFU.</div>
+      </div>
+    </div>
+    <div id="test-guidance" class="info-box" style="margin-top:10px;display:none"></div>
+
+    <!-- COST CALCULATOR -->
+    <div id="cost-calculator" style="margin-top:14px;display:none">
+      <div style="font-size:11px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Budget estimate</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+        <div class="metric"><div class="metric-val" id="cost-daily">—</div><div class="metric-lbl">Daily budget</div></div>
+        <div class="metric"><div class="metric-val" id="cost-days">—</div><div class="metric-lbl">Days running</div></div>
+        <div class="metric"><div class="metric-val" id="cost-total">—</div><div class="metric-lbl">Total spend</div></div>
+        <div class="metric"><div class="metric-val" id="cost-leads">—</div><div class="metric-lbl">Est. leads</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATES -->
+  <div class="card">
+    <div class="card-title">Campaign dates</div>
+    <div class="row2">
+      <div class="field">
+        <label>Start date</label>
+        <input type="date" id="start-date" onchange="updateDates()" style="cursor:pointer">
+        <div class="hint" style="margin-top:4px">Give yourself 24–48hrs after launch for the pixel to populate data before judging results.</div>
+      </div>
+      <div class="field">
+        <label>End date <span style="font-weight:400;color:#aaa" id="end-date-label">(optional for evergreen)</span></label>
+        <input type="date" id="end-date" onchange="updateDates()" style="cursor:pointer">
+        <div class="hint" style="margin-top:4px" id="end-date-hint">Leave blank for ongoing campaigns. Required for challenges and probe tests.</div>
+      </div>
+    </div>
+    <div id="date-summary" style="display:none;margin-top:8px" class="good-box"></div>
+  </div>
+
+  <!-- OFFER -->
+  <div class="card">
+    <div class="card-title">Offer</div>
+    <div class="field">
+      <label>Entry offer for this campaign</label>
+      <div class="hint" id="offer-hint">Pre-filled from your program. Edit only if running a variation of the standard offer.</div>
+      <input type="text" id="offer" placeholder="e.g. Free Strategy Call" oninput="updateNaming()">
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>On-camera face</label>
+        <select id="face">
+          <option>Tyler</option>
+          <option>Amauche</option>
+          <option>Coach (staff)</option>
+          <option>Client testimonial</option>
+          <option>Voiceover / B-roll only</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>GHL Pipeline this feeds into</label>
+        <input type="text" id="ghl-pipeline-brief" placeholder="e.g. BBT Accountability — Consult Pipeline">
+      </div>
+    </div>
+  </div>
+
+  <!-- AVATAR BUILDER -->
+  <div class="card">
+    <div class="card-title">Campaign avatar</div>
+    <div class="hint" style="margin-bottom:12px">Build your target person precisely. These are the people you're consistently targeting — not random. Every selection tightens the message.</div>
+
+    <div class="field">
+      <label>Who are they? <span style="font-weight:400;color:#aaa">(select all that apply)</span></label>
+      <div class="tag-group" id="avatar-who">
+        <span class="tag" data-val="Busy moms" onclick="toggleAvatarTag(this)">Busy moms</span>
+        <span class="tag" data-val="Working professionals" onclick="toggleAvatarTag(this)">Working professionals</span>
+        <span class="tag" data-val="Former athletes" onclick="toggleAvatarTag(this)">Former athletes</span>
+        <span class="tag" data-val="Serial gym-quitters" onclick="toggleAvatarTag(this)">Serial gym-quitters</span>
+        <span class="tag" data-val="Women 28–45" onclick="toggleAvatarTag(this)">Women 28–45</span>
+        <span class="tag" data-val="Men 30–50" onclick="toggleAvatarTag(this)">Men 30–50</span>
+        <span class="tag" data-val="College-educated" onclick="toggleAvatarTag(this)">College-educated</span>
+        <span class="tag" data-val="High earners ($75k+)" onclick="toggleAvatarTag(this)">High earners ($75k+)</span>
+        <span class="tag" data-val="Homeowners (Charlotte suburbs)" onclick="toggleAvatarTag(this)">Homeowners (Charlotte suburbs)</span>
+        <span class="tag" data-val="Social media active" onclick="toggleAvatarTag(this)">Social media active</span>
+      </div>
+    </div>
+
+    <div class="field" style="margin-top:10px">
+      <label>What's their core pain? <span style="font-weight:400;color:#aaa">(pick their #1)</span></label>
+      <div class="tag-group" id="avatar-pain">
+        <span class="tag" data-val="Can't stay consistent" onclick="toggleAvatarTag(this)">Can't stay consistent</span>
+        <span class="tag" data-val="Tried everything, nothing sticks" onclick="toggleAvatarTag(this)">Tried everything, nothing sticks</span>
+        <span class="tag" data-val="No accountability" onclick="toggleAvatarTag(this)">No accountability</span>
+        <span class="tag" data-val="Too busy to figure it out" onclick="toggleAvatarTag(this)">Too busy to figure it out</span>
+        <span class="tag" data-val="Intimidated by regular gyms" onclick="toggleAvatarTag(this)">Intimidated by regular gyms</span>
+        <span class="tag" data-val="Plateau — not seeing results" onclick="toggleAvatarTag(this)">Plateau — not seeing results</span>
+        <span class="tag" data-val="Outgrown group classes" onclick="toggleAvatarTag(this)">Outgrown group classes</span>
+        <span class="tag" data-val="Wants structure, not just workouts" onclick="toggleAvatarTag(this)">Wants structure, not just workouts</span>
+      </div>
+    </div>
+
+    <div class="field" style="margin-top:10px">
+      <label>What do they want? <span style="font-weight:400;color:#aaa">(their desired outcome)</span></label>
+      <div class="tag-group" id="avatar-want">
+        <span class="tag" data-val="Lose weight and keep it off" onclick="toggleAvatarTag(this)">Lose weight and keep it off</span>
+        <span class="tag" data-val="Get stronger" onclick="toggleAvatarTag(this)">Get stronger</span>
+        <span class="tag" data-val="Feel confident in their body" onclick="toggleAvatarTag(this)">Feel confident in their body</span>
+        <span class="tag" data-val="Build a consistent routine" onclick="toggleAvatarTag(this)">Build a consistent routine</span>
+        <span class="tag" data-val="Find a fitness community" onclick="toggleAvatarTag(this)">Find a fitness community</span>
+        <span class="tag" data-val="Have a coach in their corner" onclick="toggleAvatarTag(this)">Have a coach in their corner</span>
+        <span class="tag" data-val="Train smarter, not harder" onclick="toggleAvatarTag(this)">Train smarter, not harder</span>
+        <span class="tag" data-val="Body transformation (aesthetic)" onclick="toggleAvatarTag(this)">Body transformation (aesthetic)</span>
+      </div>
+    </div>
+
+    <div class="field" style="margin-top:10px">
+      <label>Where are they in their fitness journey?</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:4px">
+        <div class="opt" id="journey-beginner" onclick="selectOpt('journey',['journey-beginner','journey-intermediate','journey-serious'],'journey-beginner')">
+          <h4>Beginner</h4><p>Little to no consistent exercise history</p>
+        </div>
+        <div class="opt" id="journey-intermediate" onclick="selectOpt('journey',['journey-beginner','journey-intermediate','journey-serious'],'journey-intermediate')">
+          <h4>Intermediate</h4><p>Works out sometimes — not consistent</p>
+        </div>
+        <div class="opt" id="journey-serious" onclick="selectOpt('journey',['journey-beginner','journey-intermediate','journey-serious'],'journey-serious')">
+          <h4>Serious</h4><p>Actively trains, wants next level</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="field" style="margin-top:10px">
+      <label>Avatar summary <span style="font-weight:400;color:#aaa">(auto-builds · edit freely)</span></label>
+      <textarea id="avatar" rows="3" placeholder="Auto-builds from your selections above..."></textarea>
+    </div>
+  </div>
+
+  <!-- PROOF ASSETS -->
+  <div class="card">
+    <div class="card-title">Proof assets</div>
+    <div class="hint" style="margin-bottom:10px">What social proof do you have available right now? Be specific — this determines which creative types are available to you.</div>
+
+    <div class="field">
+      <label>Video assets <span style="font-weight:400;color:#aaa">(select all you have)</span></label>
+      <div class="tag-group" id="proof-video">
+        <span class="tag" data-val="Client video testimonials" onclick="toggleProofTag(this)">Client video testimonials</span>
+        <span class="tag" data-val="Before/after transformation videos" onclick="toggleProofTag(this)">Before/after transformation videos</span>
+        <span class="tag" data-val="In-class/training footage" onclick="toggleProofTag(this)">In-class / training footage</span>
+        <span class="tag" data-val="Coach talking head clips" onclick="toggleProofTag(this)">Coach talking head clips</span>
+        <span class="tag" data-val="UGC from members" onclick="toggleProofTag(this)">UGC from members</span>
+        <span class="tag" data-val="Event/challenge recap video" onclick="toggleProofTag(this)">Event / challenge recap video</span>
+      </div>
+    </div>
+
+    <div class="field" style="margin-top:10px">
+      <label>Photo / static assets</label>
+      <div class="tag-group" id="proof-photo">
+        <span class="tag" data-val="Before/after photo sets" onclick="toggleProofTag(this)">Before/after photo sets</span>
+        <span class="tag" data-val="Client result screenshots" onclick="toggleProofTag(this)">Client result screenshots</span>
+        <span class="tag" data-val="In-gym action photos" onclick="toggleProofTag(this)">In-gym action photos</span>
+        <span class="tag" data-val="Google/Facebook reviews" onclick="toggleProofTag(this)">Google / Facebook reviews</span>
+        <span class="tag" data-val="Transformation infographics" onclick="toggleProofTag(this)">Transformation infographics</span>
+      </div>
+    </div>
+
+    <div class="field" style="margin-top:10px">
+      <label>Written proof</label>
+      <div class="tag-group" id="proof-written">
+        <span class="tag" data-val="Client text testimonials" onclick="toggleProofTag(this)">Client text testimonials</span>
+        <span class="tag" data-val="Specific result stats (lbs, inches)" onclick="toggleProofTag(this)">Specific result stats (lbs, inches)</span>
+        <span class="tag" data-val="Member count / years in business" onclick="toggleProofTag(this)">Member count / years in business</span>
+        <span class="tag" data-val="Challenge winner results" onclick="toggleProofTag(this)">Challenge winner results</span>
+      </div>
+    </div>
+
+    <div id="proof-warning" style="margin-top:10px;display:none" class="warn-box"></div>
+    <div id="proof-summary" style="margin-top:10px;font-size:12px;color:#666"></div>
+  </div>
+
+  <!-- BRIEF SUMMARY -->
+  <div class="card" id="brief-summary-card" style="display:none">
+    <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+      Brief summary & feedback
+      <span class="badge bg" id="brief-score-badge">—</span>
+    </div>
+    <div id="brief-summary-rows"></div>
+    <div id="brief-feedback" style="margin-top:14px"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Campaign name preview</div>
+    <div class="hint">Auto-generates from your selections.</div>
+    <div class="name-preview" id="campaign-name-preview">Select program and fill fields above...</div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn" onclick="goTo(0)">← Back</button>
+    <button class="btn btn-primary" onclick="generateBriefSummary();nextStep(1)">Review brief & continue →</button>
+  </div>
+</div>
+
+<!-- ==================== STEP 2: OBJECTIVE & BUDGET ==================== -->
+<div class="step-page" id="page-2">
+  <div class="page-header">
+    <div class="step-tag">Step 3 of 12 · Campaign Setup</div>
+    <h2>Objective & budget</h2>
+    <p>These settings control how Meta spends your money. Wrong objective = wasted budget on the wrong people.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Facebook campaign objective</div>
+    <div class="info-box">TOFU = Engagement or Traffic. Never run Leads/Conversions/Sales against a cold audience — Meta will throttle you immediately.</div>
+    <div class="option-grid">
+      <div class="opt sel" id="obj-engagement" onclick="selectOpt('obj',['obj-engagement','obj-awareness','obj-traffic','obj-leads'],'obj-engagement')">
+        <h4>Engagement</h4><p>Best for viral TOFU videos, brand familiarity, awareness plays</p><div class="rec">✓ Recommended for TOFU</div>
+      </div>
+      <div class="opt" id="obj-awareness" onclick="selectOpt('obj',['obj-engagement','obj-awareness','obj-traffic','obj-leads'],'obj-awareness')">
+        <h4>Awareness / Reach</h4><p>Brand intro — good for broad cold audiences at low CPM</p><div class="rec">✓ OK for TOFU</div>
+      </div>
+      <div class="opt" id="obj-traffic" onclick="selectOpt('obj',['obj-engagement','obj-awareness','obj-traffic','obj-leads'],'obj-traffic')">
+        <h4>Traffic</h4><p>Warms the pixel via site visitors. Use for MOFU setup phase.</p><div class="note">OK for pixel warming</div>
+      </div>
+      <div class="opt danger" id="obj-leads" onclick="selectOpt('obj',['obj-engagement','obj-awareness','obj-traffic','obj-leads'],'obj-leads')">
+        <h4>Leads / Conversions / Sales</h4><p>Direct response — needs warm audience and strong pixel data</p><div class="avoid">✕ MOFU or BOFU only</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Budget type</div>
+    <div class="option-grid">
+      <div class="opt sel" id="bud-cbo" onclick="selectOpt('bud',['bud-cbo','bud-abo'],'bud-cbo')">
+        <h4>CBO — Campaign Budget Optimization</h4><p>Meta distributes budget across ad sets automatically to lowest CPL</p><div class="rec">✓ Default for all BBT campaigns</div>
+      </div>
+      <div class="opt" id="bud-abo" onclick="selectOpt('bud',['bud-cbo','bud-abo'],'bud-abo')">
+        <h4>ABO — Ad Set Budget</h4><p>Manual control per ad set — only when split testing audiences</p><div class="note">Use only for audience testing</div>
+      </div>
+    </div>
+    <div class="warn-box">Never switch CBO → ABO mid-campaign. Never use CBO with only 1 ad set — that's pointless.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Daily budget & duration</div>
+    <div class="row3">
+      <div class="field">
+        <label>Daily budget</label>
+        <div class="hint">Minimum $10–$20/day to exit learning phase at TOFU</div>
+        <select id="daily-budget" onchange="updateNaming()">
+          <option>$10/day</option><option>$15/day</option><option selected>$20/day</option>
+          <option>$30/day</option><option>$50/day</option><option>$75/day</option><option>$100/day</option><option>$150/day</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Duration</label>
+        <select id="duration">
+          <option>14 days</option><option selected>30 days</option><option>60 days</option><option>Ongoing</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Budget allocation note</label>
+        <select id="budget-alloc">
+          <option>60% of total paid budget → TOFU</option>
+          <option>30% of total paid budget → MOFU</option>
+          <option>10% of total paid budget → BOFU</option>
+          <option>Custom allocation</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Bid strategy & attribution</div>
+    <div class="good-box">Always use Highest Volume at TOFU. Never use ROAS goal, Bid Cap, or Cost-per-result goal on cold audiences — they strangle the learning phase.</div>
+    <div class="row2">
+      <div class="field">
+        <label>Bid strategy</label>
+        <select id="bid">
+          <option selected>Highest volume (TOFU standard)</option>
+          <option>Cost-per-result goal (MOFU/BOFU only)</option>
+          <option>ROAS goal (BOFU only)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Attribution window</label>
+        <select id="attribution">
+          <option selected>7-day click + 1-day view (TOFU standard)</option>
+          <option>7-day click only</option>
+          <option>1-day click (too strict for TOFU)</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Optimization event</label>
+      <select id="opt-event">
+        <option>Schedule (booked call) — primary BOFU event</option>
+        <option>Lead — MOFU standard</option>
+        <option>CompleteRegistration — qualified form</option>
+        <option>ViewContent — MOFU pixel building</option>
+        <option>ThruPlay — video TOFU</option>
+        <option>Landing Page View — MOFU warm traffic</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn" onclick="goTo(1)">← Back</button>
+    <button class="btn btn-primary" onclick="nextStep(2)">Next: Tracking & pixel →</button>
+  </div>
+</div>
+
+<!-- ==================== STEP 3: TRACKING ==================== -->
+<div class="step-page" id="page-3">
+  <div class="page-header">
+    <div class="step-tag">Step 4 of 12 · Campaign Setup</div>
+    <h2>Tracking & pixel</h2>
+    <p>Confirm pixel and CAPI before spending. Wrong pixel = you're training Meta on bad data from day one.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">Pixel status</div>
+    <div class="option-grid">
+      <div class="opt sel" id="pix-yes" onclick="selectOpt('pix',['pix-yes','pix-no'],'pix-yes')">
+        <h4>✓ Pixel verified</h4><p>PageView fires in Events Manager → Test Events when you visit the site</p><div class="rec">Good to proceed</div>
+      </div>
+      <div class="opt danger" id="pix-no" onclick="selectOpt('pix',['pix-yes','pix-no'],'pix-no')">
+        <h4>✕ Not verified / unsure</h4><p>Fix this before launching. Check Events Manager → Test Events → visit your site and confirm PageView fires.</p><div class="avoid">Stop — fix pixel first</div>
+      </div>
+    </div>
+    <div class="warn-box">Only ONE pixel connected in Wix. Remove all old/duplicate pixels. Use Wix "Meta Pixel & CAPI" native integration — never custom code.</div>
+  </div>
+  <div class="card">
+    <div class="card-title">CAPI & GoHighLevel</div>
+    <div class="info-box">GHL's native FB integration already includes CAPI. Do NOT also add Meta Pixel via custom code — that causes duplicate events and corrupts your data.</div>
+    <div class="row2">
+      <div class="field">
+        <label>CAPI status</label>
+        <select id="capi"><option>On — GHL native integration</option><option>On — Zapier backup</option><option>Off / Not set up yet</option></select>
+      </div>
+      <div class="field">
+        <label>Pixel ID (for your records)</label>
+        <input type="text" id="pixel-id" placeholder="e.g. 123456789012345">
+      </div>
+    </div>
+    <div class="field">
+      <label>GHL Pipeline this ad feeds into</label>
+      <input type="text" id="ghl-pipeline" placeholder="e.g. BBT Accountability — Consultation Pipeline">
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">UTM template</div>
+    <div class="field">
+      <label>Paste into Ads Manager → URL Parameters field</label>
+      <input type="text" id="utm" value="utm_source=facebook&utm_medium=paid&utm_campaign={{campaign.name}}&utm_content={{ad.name}}" readonly style="background:#f8f8f5;font-family:'Courier New',monospace;font-size:11px">
+    </div>
+    <div class="field">
+      <label>GHL Form ID (if using Meta lead form)</label>
+      <input type="text" id="ghl-form" placeholder="GHL → Sites/Funnels → Form → Settings → Form ID">
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn" onclick="goTo(2)">← Back</button>
+    <button class="btn btn-primary" onclick="nextStep(3)">Next: Location & ZIP codes →</button>
+  </div>
+</div>
+
+<!-- ==================== STEP 4: LOCATION & ZIP ==================== -->
+<div class="step-page" id="page-4">
+  <div class="page-header">
+    <div class="step-tag">Step 5 of 12 · Audience</div>
+    <h2>Location & ZIP codes</h2>
+    <p>BBT is a local market business. Your program determines your radius. ZIPs are pre-selected based on your program — adjust as needed.</p>
+  </div>
+
+  <div id="geo-strategy-card"></div>
+
+  <div class="card">
+    <div class="card-title">Radius targeting</div>
+    <div class="option-grid-4">
+      <div class="opt" id="rad-5" onclick="selectOpt('rad',['rad-5','rad-7','rad-10','rad-12','rad-15','rad-30'],'rad-5')"><h4>5 miles</h4><p>Hyper-local only</p></div>
+      <div class="opt" id="rad-7" onclick="selectOpt('rad',['rad-5','rad-7','rad-10','rad-12','rad-15','rad-30'],'rad-7')"><h4>7 miles</h4><p>Tight commodity zone</p></div>
+      <div class="opt" id="rad-10" onclick="selectOpt('rad',['rad-5','rad-7','rad-10','rad-12','rad-15','rad-30'],'rad-10')"><h4>10 miles</h4><p>Standard BBT zone</p></div>
+      <div class="opt" id="rad-12" onclick="selectOpt('rad',['rad-5','rad-7','rad-10','rad-12','rad-15','rad-30'],'rad-12')"><h4>12 miles</h4><p>Premium programs</p></div>
+    </div>
+    <div class="option-grid" style="grid-template-columns:1fr 1fr;max-width:340px">
+      <div class="opt" id="rad-15" onclick="selectOpt('rad',['rad-5','rad-7','rad-10','rad-12','rad-15','rad-30'],'rad-15')"><h4>15 miles</h4><p>Premium / P6</p></div>
+      <div class="opt" id="rad-30" onclick="selectOpt('rad',['rad-5','rad-7','rad-10','rad-12','rad-15','rad-30'],'rad-30')"><h4>30 miles</h4><p>P3 Accountability only</p></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Charlotte ZIP codes</div>
+    <div class="good-box" id="zip-guidance">Select your program in Step 1 to see recommended ZIPs.</div>
+    <div class="zip-grid" id="zip-grid"></div>
+    <div style="margin-top:10px;font-size:12px;color:#999">Selected: <span id="zip-count" style="font-weight:600;color:#1a1a1a">0</span> ZIP codes &nbsp;·&nbsp; <span id="zip-preview" style="font-family:'Courier New',monospace"></span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Audience type</div>
+    <div class="option-grid">
+      <div class="opt sel" id="aud-zip" onclick="selectOpt('aud',['aud-zip','aud-lla','aud-rt','aud-broad'],'aud-zip')">
+        <h4>ZIP / Radius stack</h4><p>Core Charlotte ZIPs + radius. Primary BBT local approach.</p><div class="rec">✓ Default for most programs</div>
+      </div>
+      <div class="opt" id="aud-lla" onclick="selectOpt('aud',['aud-zip','aud-lla','aud-rt','aud-broad'],'aud-lla')">
+        <h4>Lookalike (LLA)</h4><p>1% clients, 1% qualified calls, 1–3% stacked. Need 500+ seed list.</p><div class="rec">✓ Use once pixel has data</div>
+      </div>
+      <div class="opt" id="aud-rt" onclick="selectOpt('aud',['aud-zip','aud-lla','aud-rt','aud-broad'],'aud-rt')">
+        <h4>Retargeting</h4><p>30-day engagers, 7-day site visitors, IG profile visits</p><div class="note">MOFU / BOFU</div>
+      </div>
+      <div class="opt" id="aud-broad" onclick="selectOpt('aud',['aud-zip','aud-lla','aud-rt','aud-broad'],'aud-broad')">
+        <h4>Broad</h4><p>No targeting — let Meta find buyers. Optional TOFU test at 12–15mi.</p><div class="note">Test only</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn" onclick="goTo(3)">← Back</button>
+    <button class="btn btn-primary" onclick="nextStep(4)">Next: Age, gender & interests →</button>
+  </div>
+</div>
+
+<!-- ==================== STEP 5: AGE / GENDER / INTERESTS ==================== -->
+<div class="step-page" id="page-5">
+  <div class="page-header">
+    <div class="step-tag">Step 6 of 12 · Audience</div>
+    <h2>Age, gender & interests</h2>
+    <p>Pre-filled from your program selection. Review and adjust for this specific campaign.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">Age range</div>
+    <div class="info-box">25–55 is the ideal BBT buyer range. Pre-selected based on your program. Adjust only if running a specific age-split test.</div>
+    <div class="tag-group" id="age-tags">
+      <span class="tag" data-val="18-24" onclick="toggleTag(this)">18–24</span>
+      <span class="tag sel" data-val="25-34" onclick="toggleTag(this)">25–34</span>
+      <span class="tag sel" data-val="35-44" onclick="toggleTag(this)">35–44</span>
+      <span class="tag sel" data-val="45-54" onclick="toggleTag(this)">45–54</span>
+      <span class="tag" data-val="55-64" onclick="toggleTag(this)">55–64</span>
+      <span class="tag" data-val="65+" onclick="toggleTag(this)">65+</span>
+    </div>
+    <div style="margin-top:7px;font-size:12px;color:#999">Selected: <span id="age-preview" style="font-weight:500;color:#1a1a1a">25–54</span></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Gender</div>
+    <div class="info-box">BBT targets women by default for most programs. Confirm intentionally for each campaign — never leave this on autopilot.</div>
+    <div class="option-grid-3">
+      <div class="opt sel" id="gen-women" onclick="selectOpt('gen',['gen-women','gen-all','gen-men'],'gen-women')"><h4>Women</h4><p>Default for most BBT ads</p><div class="rec">✓ Default</div></div>
+      <div class="opt" id="gen-all" onclick="selectOpt('gen',['gen-women','gen-all','gen-men'],'gen-all')"><h4>All genders</h4><p>General campaigns — confirm intentionally</p></div>
+      <div class="opt" id="gen-men" onclick="selectOpt('gen',['gen-women','gen-all','gen-men'],'gen-men')"><h4>Men</h4><p>Specific programs only — confirm intentionally</p></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Interest targeting</div>
+    <div class="info-box">For TOFU: broad OR interests — never both layered. Never use "Narrow" (AND) interests — limits reach. Pre-selected based on your program. Add or remove as needed.</div>
+
+    <div class="field">
+      <label>Core fitness interests</label>
+      <div class="tag-group" id="int-fitness">
+        <span class="tag" data-val="Fitness & Wellness" onclick="toggleTag(this)">Fitness & Wellness</span>
+        <span class="tag" data-val="Group Fitness" onclick="toggleTag(this)">Group Fitness</span>
+        <span class="tag" data-val="Gym Membership" onclick="toggleTag(this)">Gym Membership</span>
+        <span class="tag" data-val="Personal Training" onclick="toggleTag(this)">Personal Training</span>
+        <span class="tag" data-val="HIIT" onclick="toggleTag(this)">HIIT</span>
+        <span class="tag" data-val="Fat Loss" onclick="toggleTag(this)">Fat Loss</span>
+        <span class="tag" data-val="Bootcamp" onclick="toggleTag(this)">Bootcamp</span>
+        <span class="tag" data-val="Weight loss" onclick="toggleTag(this)">Weight loss</span>
+        <span class="tag" data-val="Women's fitness" onclick="toggleTag(this)">Women's fitness</span>
+        <span class="tag" data-val="Weightlifting" onclick="toggleTag(this)">Weightlifting</span>
+        <span class="tag" data-val="CrossFit" onclick="toggleTag(this)">CrossFit</span>
+        <span class="tag" data-val="Strength Training" onclick="toggleTag(this)">Strength Training</span>
+        <span class="tag" data-val="Physical fitness" onclick="toggleTag(this)">Physical fitness</span>
+        <span class="tag" data-val="Exercise" onclick="toggleTag(this)">Exercise</span>
+        <span class="tag" data-val="Aerobics" onclick="toggleTag(this)">Aerobics</span>
+        <span class="tag" data-val="Pilates" onclick="toggleTag(this)">Pilates</span>
+        <span class="tag" data-val="Yoga" onclick="toggleTag(this)">Yoga</span>
+        <span class="tag" data-val="Running" onclick="toggleTag(this)">Running</span>
+        <span class="tag" data-val="Body building" onclick="toggleTag(this)">Body building</span>
+        <span class="tag" data-val="Functional training" onclick="toggleTag(this)">Functional training</span>
+      </div>
+    </div>
+
+    <div class="field" style="margin-top:10px">
+      <label>Health & wellness interests</label>
+      <div class="tag-group" id="int-health">
+        <span class="tag" data-val="Health" onclick="toggleTag(this)">Health</span>
+        <span class="tag" data-val="Nutrition" onclick="toggleTag(this)">Nutrition</span>
+        <span class="tag" data-val="Healthy diet" onclick="toggleTag(this)">Healthy diet</span>
+        <span class="tag" data-val="Weight management" onclick="toggleTag(this)">Weight management</span>
+        <span class="tag" data-val="Body image" onclick="toggleTag(this)">Body image</span>
+        <span class="tag" data-val="Mental health" onclick="toggleTag(this)">Mental health</span>
+        <span class="tag" data-val="Self-care" onclick="toggleTag(this)">Self-care</span>
+        <span class="tag" data-val="Wellness" onclick="toggleTag(this)">Wellness</span>
+        <span class="tag" data-val="Mindfulness" onclick="toggleTag(this)">Mindfulness</span>
+        <span class="tag" data-val="Dieting" onclick="toggleTag(this)">Dieting</span>
+        <span class="tag" data-val="Meal planning" onclick="toggleTag(this)">Meal planning</span>
+      </div>
+    </div>
+
+    <div class="field" style="margin-top:10px">
+      <label>Lifestyle / culture interests <span style="font-weight:400;color:#aaa">(attract women via lifestyle content)</span></label>
+      <div class="tag-group" id="int-life">
+        <span class="tag" data-val="Beyoncé" onclick="toggleTag(this)">Beyoncé</span>
+        <span class="tag" data-val="Ciara" onclick="toggleTag(this)">Ciara</span>
+        <span class="tag" data-val="Fitness girls" onclick="toggleTag(this)">Fitness girls</span>
+        <span class="tag" data-val="SZA" onclick="toggleTag(this)">SZA</span>
+        <span class="tag" data-val="Lizzo" onclick="toggleTag(this)">Lizzo</span>
+        <span class="tag" data-val="Fashion" onclick="toggleTag(this)">Fashion</span>
+        <span class="tag" data-val="Athleisure" onclick="toggleTag(this)">Athleisure</span>
+        <span class="tag" data-val="Lululemon" onclick="toggleTag(this)">Lululemon</span>
+        <span class="tag" data-val="Nike" onclick="toggleTag(this)">Nike</span>
+        <span class="tag" data-val="Self-improvement" onclick="toggleTag(this)">Self-improvement</span>
+        <span class="tag" data-val="Girl boss" onclick="toggleTag(this)">Girl boss</span>
+        <span class="tag" data-val="Motivational" onclick="toggleTag(this)">Motivational</span>
+      </div>
+    </div>
+
+    <div class="field" style="margin-top:10px">
+      <label>Behavioral / demographic interests</label>
+      <div class="tag-group" id="int-demo">
+        <span class="tag" data-val="Mothers" onclick="toggleTag(this)">Mothers</span>
+        <span class="tag" data-val="Working women" onclick="toggleTag(this)">Working women</span>
+        <span class="tag" data-val="Entrepreneurs" onclick="toggleTag(this)">Entrepreneurs</span>
+        <span class="tag" data-val="Small business owners" onclick="toggleTag(this)">Small business owners</span>
+        <span class="tag" data-val="College graduates" onclick="toggleTag(this)">College graduates</span>
+        <span class="tag" data-val="Homeowners" onclick="toggleTag(this)">Homeowners</span>
+        <span class="tag" data-val="Engaged shoppers" onclick="toggleTag(this)">Engaged shoppers</span>
+        <span class="tag" data-val="Health & fitness (purchases)" onclick="toggleTag(this)">Health & fitness (purchases)</span>
+      </div>
+    </div>
+
+    <div style="margin-top:10px;font-size:12px;color:#999">Selected: <span id="int-preview" style="font-weight:500;color:#1a1a1a;font-size:11px">—</span></div>
+    <div class="warn-box" style="margin-top:10px">Never layer "narrow" (AND) interests at TOFU — it kills reach. Keep it broad OR one stack. Never use both fitness AND lifestyle interests as "required" simultaneously.</div>
+  </div>
+  <div class="btn-row">
+    <button class="btn" onclick="goTo(4)">← Back</button>
+    <button class="btn btn-primary" onclick="nextStep(5)">Next: Placements & devices →</button>
+  </div>
+</div>
+
+<!-- ==================== STEP 6: PLACEMENTS ==================== -->
+<div class="step-page" id="page-6">
+  <div class="page-header">
+    <div class="step-tag">Step 7 of 12 · Audience</div>
+    <h2>Placements & devices</h2>
+    <p>Where your ad shows up. Advantage+ is almost always the right call for TOFU BBT campaigns.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">Placement strategy</div>
+    <div class="option-grid">
+      <div class="opt sel" id="pl-adv" onclick="selectOpt('pl',['pl-adv','pl-ig','pl-feeds','pl-fb'],'pl-adv')"><h4>Advantage+ placements</h4><p>Meta auto-selects best placements for lowest cost. All surfaces available.</p><div class="rec">✓ Always ON for TOFU BBT campaigns</div></div>
+      <div class="opt" id="pl-ig" onclick="selectOpt('pl',['pl-adv','pl-ig','pl-feeds','pl-fb'],'pl-ig')"><h4>Manual — IG only</h4><p>Feeds, Reels, Stories. Use only for IG follower / profile visit campaigns.</p></div>
+      <div class="opt" id="pl-feeds" onclick="selectOpt('pl',['pl-adv','pl-ig','pl-feeds','pl-fb'],'pl-feeds')"><h4>Feeds only</h4><p>Facebook + Instagram feeds. For static-heavy campaigns.</p></div>
+      <div class="opt" id="pl-fb" onclick="selectOpt('pl',['pl-adv','pl-ig','pl-feeds','pl-fb'],'pl-fb')"><h4>Manual — FB only</h4><p>Rarely right for BBT. Only if audience is older / non-Instagram.</p></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Available surfaces (reference)</div>
+    <div class="tag-group">
+      <span class="tag sel" onclick="toggleTag(this)" data-val="Facebook Feed">Facebook Feed</span>
+      <span class="tag sel" onclick="toggleTag(this)" data-val="Instagram Feed">Instagram Feed</span>
+      <span class="tag sel" onclick="toggleTag(this)" data-val="Instagram Reels">Instagram Reels</span>
+      <span class="tag sel" onclick="toggleTag(this)" data-val="Stories">Stories</span>
+      <span class="tag" onclick="toggleTag(this)" data-val="Marketplace">Marketplace</span>
+      <span class="tag" onclick="toggleTag(this)" data-val="Audience Network">Audience Network</span>
+    </div>
+    <div style="font-size:11px;color:#aaa;margin-top:6px">With Advantage+ enabled, Meta selects from all surfaces automatically.</div>
+  </div>
+  <div class="card">
+    <div class="card-title">Device targeting</div>
+    <div class="option-grid-3">
+      <div class="opt sel" id="dev-all" onclick="selectOpt('dev',['dev-all','dev-mobile','dev-desktop'],'dev-all')"><h4>All devices</h4><div class="rec">✓ Default for all BBT ads</div></div>
+      <div class="opt" id="dev-mobile" onclick="selectOpt('dev',['dev-all','dev-mobile','dev-desktop'],'dev-mobile')"><h4>Mobile only</h4><p>Good for Reels / Stories heavy campaigns</p></div>
+      <div class="opt" id="dev-desktop" onclick="selectOpt('dev',['dev-all','dev-mobile','dev-desktop'],'dev-desktop')"><h4>Desktop only</h4><p>Almost never correct for BBT</p></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Things to never touch for BBT Fitness</div>
+    <div class="danger-box">
+      <strong>Block lists</strong> — reduce delivery, spike CPM. Only for national brands protecting brand safety. Not BBT.<br><br>
+      <strong>Limited or Standard Inventory filters</strong> — cuts reach dramatically, increases CPM. BBT Fitness is NOT a sensitive category. Never select these.<br><br>
+      <strong>Content type exclusions</strong> — Meta already blocks violent/harmful content. More exclusions = less reach = higher cost.<br><br>
+      <strong>Topic exclusions</strong> — Block topics → block inventory → CPM goes up → TOFU loses reach. BBT should never exclude topics.
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn" onclick="goTo(5)">← Back</button>
+    <button class="btn btn-primary" onclick="nextStep(6)">Next: Ad style & hook →</button>
+  </div>
+</div>
+
+<!-- ==================== STEP 7: STYLE & HOOK ==================== -->
+<div class="step-page" id="page-7">
+  <div class="page-header">
+    <div class="step-tag">Step 8 of 12 · Creative & Copy</div>
+    <h2>Ad style & hook</h2>
+    <p>Choose your content style and write the opening line. This is the most important creative decision — if they don't stop scrolling, nothing else matters.</p>
+  </div>
+
+  <div id="hook-strategy-card"></div>
+
+  <div class="card">
+    <div class="card-title">Ad style & formula</div>
+    <div class="hint" style="margin-bottom:10px">Choose your primary influencer style, then pick the specific formula that matches what you're trying to do with this ad.</div>
+
+    <div class="option-grid" style="margin-bottom:12px">
+      <div class="opt sel" id="style-hormozi" onclick="selectStyle('hormozi')">
+        <h4>Hormozi method</h4>
+        <p>Direct, bold, value-heavy. Lead with the result. Cut all fluff. Make them feel like NOT clicking is the mistake.</p>
+        <div class="rec">Best for cold Charlotte audiences · P2, P4</div>
+      </div>
+      <div class="opt" id="style-shiver" onclick="selectStyle('shiver')">
+        <h4>Dr. Shiver method</h4>
+        <p>Education-first, trust-based. Lead with a problem or insight. Position BBT as the expert authority.</p>
+        <div class="rec">Best for premium programs · P3, P5, P6, P7</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Copy formula — pick the structure for this ad's body copy</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px" id="formula-selector">
+
+        <div class="opt" id="formula-pas" onclick="selectFormula('pas')">
+          <div style="margin-bottom:4px"><span class="badge bb">PAS</span></div>
+          <h4>Problem → Agitate → Solve</h4>
+          <p style="font-size:11px;color:#666;line-height:1.5">Name their pain. Make it feel urgent. Present BBT as the only logical solution. Best all-around TOFU formula.</p>
+          <div style="font-size:11px;color:#888;margin-top:6px;font-style:italic">"Most women in Charlotte struggle to stay consistent…that feeling of wasting time is real…BBT fixes this with…"</div>
+        </div>
+
+        <div class="opt" id="formula-aida" onclick="selectFormula('aida')">
+          <div style="margin-bottom:4px"><span class="badge ba">AIDA</span></div>
+          <h4>Attention → Interest → Desire → Action</h4>
+          <p style="font-size:11px;color:#666;line-height:1.5">Classic ad structure. Hook grabs attention, story builds interest, proof creates desire, CTA closes. Works for any funnel stage.</p>
+          <div style="font-size:11px;color:#888;margin-top:6px;font-style:italic">"Stop — this is for Charlotte women done starting over…here's what makes BBT different…join 200+ members who…"</div>
+        </div>
+
+        <div class="opt" id="formula-bab" onclick="selectFormula('bab')">
+          <div style="margin-bottom:4px"><span class="badge bg">BAB</span></div>
+          <h4>Before → After → Bridge</h4>
+          <p style="font-size:11px;color:#666;line-height:1.5">Show where they are now, paint the picture of where they want to be, then position BBT as the bridge. Great for transformation ads.</p>
+          <div style="font-size:11px;color:#888;margin-top:6px;font-style:italic">"Tired of starting over every 3 weeks?…Imagine having a consistent routine…BBT's accountability system makes that real."</div>
+        </div>
+
+        <div class="opt" id="formula-fab" onclick="selectFormula('fab')">
+          <div style="margin-bottom:4px"><span class="badge bp">FAB</span></div>
+          <h4>Feature → Advantage → Benefit</h4>
+          <p style="font-size:11px;color:#666;line-height:1.5">Lead with what BBT offers, explain why it's better than alternatives, land on the real-life benefit. Best for MOFU/BOFU.</p>
+          <div style="font-size:11px;color:#888;margin-top:6px;font-style:italic">"BBT uses dedicated accountability coaches [feature]…unlike group classes where no one notices if you quit [advantage]…so you actually show up [benefit]."</div>
+        </div>
+
+        <div class="opt" id="formula-pppp" onclick="selectFormula('pppp')">
+          <div style="margin-bottom:4px"><span class="badge" style="background:#FAECE7;color:#712B13">4P</span></div>
+          <h4>Promise → Picture → Proof → Push</h4>
+          <p style="font-size:11px;color:#666;line-height:1.5">Make a bold promise, paint the future state, back it with proof, then push to action. Strong for challenge and offer-based ads.</p>
+          <div style="font-size:11px;color:#888;margin-top:6px;font-style:italic">"Transform in 6 weeks…picture showing up to summer confident…Sarah lost 14 lbs in her first challenge…claim your spot now."</div>
+        </div>
+
+        <div class="opt" id="formula-star" onclick="selectFormula('star')">
+          <div style="margin-bottom:4px"><span class="badge" style="background:#E6F1FB;color:#185FA5">STAR</span></div>
+          <h4>Situation → Task → Action → Result</h4>
+          <p style="font-size:11px;color:#666;line-height:1.5">Storytelling structure. Set the scene, introduce the challenge, show what BBT did, reveal the outcome. Best for testimonial-style ads.</p>
+          <div style="font-size:11px;color:#888;margin-top:6px;font-style:italic">"Tanya was working out 5x/week and not seeing results…she needed a system not just a gym…she joined BBT S&C…down 22 lbs in 4 months."</div>
+        </div>
+
+        <div class="opt" id="formula-quest" onclick="selectFormula('quest')">
+          <div style="margin-bottom:4px"><span class="badge" style="background:#EAF3DE;color:#3B6D11">QUEST</span></div>
+          <h4>Qualify → Understand → Educate → Stimulate → Transition</h4>
+          <p style="font-size:11px;color:#666;line-height:1.5">Qualify the viewer first, show you understand their struggle, educate with an insight, stimulate with the vision, transition to CTA. Best for P3 Accountability and P7.</p>
+          <div style="font-size:11px;color:#888;margin-top:6px;font-style:italic">"If you've tried everything and still can't stay consistent, this is for you…we know how it feels…the real issue is accountability…imagine having someone…book your free call."</div>
+        </div>
+
+        <div class="opt" id="formula-oath" onclick="selectFormula('oath')">
+          <div style="margin-bottom:4px"><span class="badge bgr">OATH</span></div>
+          <h4>Oblivious → Apathetic → Thinking → Hurting</h4>
+          <p style="font-size:11px;color:#666;line-height:1.5">Match copy to audience awareness level. Use to decide how direct to be. Oblivious = educate. Hurting = go straight to solution. Use to calibrate TOFU vs BOFU tone.</p>
+          <div style="font-size:11px;color:#888;margin-top:6px;font-style:italic">TOFU = Oblivious audience → educate. MOFU = Thinking. BOFU = Hurting → solve immediately.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <div id="formula-guidance" class="info-box" style="margin-top:10px;display:none"></div>
+
+    <div class="field" style="margin-top:12px">
+      <label>Ad angle / theme</label>
+      <select id="ad-angle">
+        <option>Pain-focused — speak to their core frustration</option>
+        <option>Transformation story — before/after results journey</option>
+        <option>Social proof — client wins and community</option>
+        <option>Lifestyle / community — the BBT experience</option>
+        <option>Educational — teach something they didn't know</option>
+        <option>Myth-busting — challenge a fitness assumption</option>
+        <option>Local / Charlotte-specific — hometown connection</option>
+        <option>Urgency / offer-based — time-limited opportunity</option>
+        <option>Authority — position BBT as the expert</option>
+        <option>Relatability — "I've been where you are"</option>
+        <option>Comparison — BBT vs. doing nothing / other gyms</option>
+        <option>Aspiration — paint the life they want</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Hook — first 3–5 seconds</div>
+    <div class="warn-box">If they don't stop scrolling here, nothing else matters. Be specific. Use Charlotte. Use their identity, pain, or a bold claim.</div>
+    <div class="field">
+      <label>Program-specific hook templates — tap to use</label>
+      <div id="hook-list" style="margin-top:4px"></div>
+    </div>
+    <div class="field" style="margin-top:8px">
+      <label>Your hook (write or edit here)</label>
+      <textarea id="hook" rows="3" placeholder="Write or paste your opening line here..."></textarea>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn" onclick="goTo(6)">← Back</button>
+    <button class="btn btn-primary" onclick="nextStep(7)">Next: Copy & CTA →</button>
+  </div>
+</div>
+
+<!-- ==================== STEP 8: COPY & CTA ==================== -->
+<div class="step-page" id="page-8">
+  <div class="page-header">
+    <div class="step-tag">Step 9 of 12 · Creative & Copy</div>
+    <h2>Copy & CTA</h2>
+    <p>Write your body copy and pick your CTA. Keep TOFU copy brand-and-value focused — not sales-heavy.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">Copy framework reference</div>
+    <div class="info-box">
+      <strong>AIDA:</strong> Attention → Interest → Desire → Action&nbsp;&nbsp;|&nbsp;&nbsp;
+      <strong>PAS:</strong> Problem → Agitate → Solution&nbsp;&nbsp;|&nbsp;&nbsp;
+      <strong>FAB:</strong> Feature → Advantage → Benefit<br>
+      Keywords that convert: Strong · Confident · Accountable · Transformation · Results · Community<br>
+      CTA formula: "Join us for X to achieve Y without Z."
+    </div>
+    <div class="field">
+      <label>Primary text / body copy <span style="font-weight:400;color:#aaa">(125–220 words max)</span></label>
+      <textarea id="body-copy" rows="7" placeholder="Write your full ad body here. Start with the hook, build the value or story, close with the CTA."></textarea>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>Headline <span style="font-weight:400;color:#aaa">(40 characters max)</span></label>
+        <input type="text" id="headline" placeholder="e.g. Stronger in 12 Weeks — Charlotte" maxlength="40">
+      </div>
+      <div class="field">
+        <label>Description <span style="font-weight:400;color:#aaa">(30 characters max)</span></label>
+        <input type="text" id="description" placeholder="e.g. 2 Classes/Week. Real Results." maxlength="30">
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Call-to-action button</div>
+    <div class="option-grid-3">
+      <div class="opt sel" id="cta-book" onclick="selectOpt('cta',['cta-book','cta-learn','cta-msg','cta-signup','cta-visit','cta-apply'],'cta-book')"><h4>Book Now</h4><p>Strong CTA — consult/trial offers</p><div class="rec">✓ P3, P5, P6, P7</div></div>
+      <div class="opt" id="cta-learn" onclick="selectOpt('cta',['cta-book','cta-learn','cta-msg','cta-signup','cta-visit','cta-apply'],'cta-learn')"><h4>Learn More</h4><p>Soft — awareness plays, TOFU</p><div class="note">P1, P2, P4</div></div>
+      <div class="opt" id="cta-msg" onclick="selectOpt('cta',['cta-book','cta-learn','cta-msg','cta-signup','cta-visit','cta-apply'],'cta-msg')"><h4>Send Message</h4><p>DM-based flow in GHL</p></div>
+      <div class="opt" id="cta-signup" onclick="selectOpt('cta',['cta-book','cta-learn','cta-msg','cta-signup','cta-visit','cta-apply'],'cta-signup')"><h4>Sign Up</h4><p>Challenge entry, lead form</p><div class="note">P2 Challenges</div></div>
+      <div class="opt" id="cta-visit" onclick="selectOpt('cta',['cta-book','cta-learn','cta-msg','cta-signup','cta-visit','cta-apply'],'cta-visit')"><h4>Visit IG Profile</h4><p>Profile visit campaigns only</p></div>
+      <div class="opt" id="cta-apply" onclick="selectOpt('cta',['cta-book','cta-learn','cta-msg','cta-signup','cta-visit','cta-apply'],'cta-apply')"><h4>Apply Now</h4><p>Exclusive/qualifying offers</p><div class="note">P6, P7</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Compliance check</div>
+    <div class="warn-box">Copy must avoid: specific weight loss promises ("lose 10 lbs in 2 weeks"), language that implies personal attributes ("you're overweight"), unrealistic guarantees. Fitness is NOT a Facebook protected category.</div>
+    <div class="cl-item" id="comp-cl">
+      <input type="checkbox" id="comp-cb" onchange="clToggle('comp-cl')">
+      <label for="comp-cb">Reviewed — no false claims, weight loss promises, or disallowed words</label>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn" onclick="goTo(7)">← Back</button>
+    <button class="btn btn-primary" onclick="nextStep(8)">Next: Creative format →</button>
+  </div>
+</div>
+
+<!-- ==================== STEP 9: CREATIVE FORMAT ==================== -->
+<div class="step-page" id="page-9">
+  <div class="page-header">
+    <div class="step-tag">Step 10 of 12 · Creative & Copy</div>
+    <h2>Creative format</h2>
+    <p>70% of TOFU creative should be Reels/Stories (9:16). Each ad set needs the Rule of 3.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">Creative type</div>
+    <div class="option-grid">
+      <div class="opt sel" id="cr-reel" onclick="selectOpt('cr',['cr-reel','cr-ugc','cr-coach','cr-static','cr-carousel','cr-test'],'cr-reel')"><h4>Reel / Short video</h4><p>1080×1920 · 9:16 · 15–60 sec · Highest TOFU performer</p><div class="rec">✓ 70% of creative budget</div></div>
+      <div class="opt" id="cr-ugc" onclick="selectOpt('cr',['cr-reel','cr-ugc','cr-coach','cr-static','cr-carousel','cr-test'],'cr-ugc')"><h4>UGC-style video</h4><p>Client-filmed, authentic feel · 9:16 · High trust signal</p><div class="rec">✓ High performer</div></div>
+      <div class="opt" id="cr-coach" onclick="selectOpt('cr',['cr-reel','cr-ugc','cr-coach','cr-static','cr-carousel','cr-test'],'cr-coach')"><h4>Coach talking head</h4><p>Tyler or Amauche direct to camera · 4:5 or 9:16</p></div>
+      <div class="opt" id="cr-static" onclick="selectOpt('cr',['cr-reel','cr-ugc','cr-coach','cr-static','cr-carousel','cr-test'],'cr-static')"><h4>Static image</h4><p>1080×1080 or 1080×1350 · Bold text overlay · 20% of mix</p></div>
+      <div class="opt" id="cr-carousel" onclick="selectOpt('cr',['cr-reel','cr-ugc','cr-coach','cr-static','cr-carousel','cr-test'],'cr-carousel')"><h4>Carousel</h4><p>1080×1080 · 1:1 · 2–10 cards · 10% of mix</p></div>
+      <div class="opt" id="cr-test" onclick="selectOpt('cr',['cr-reel','cr-ugc','cr-coach','cr-static','cr-carousel','cr-test'],'cr-test')"><h4>Member testimonial</h4><p>Client result video — highest trust, best for MOFU</p></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Format specs</div>
+    <div class="info-box">Facebook/Instagram feeds → 4:5 (1080×1350) &nbsp;·&nbsp; Stories/Reels → 9:16 (1080×1920) &nbsp;·&nbsp; Carousel → 1:1 (1080×1080)</div>
+    <div class="row2">
+      <div class="field">
+        <label>Aspect ratio</label>
+        <select id="aspect"><option>9:16 — 1080×1920 (Reels/Stories)</option><option>4:5 — 1080×1350 (Feed)</option><option>1:1 — 1080×1080 (Feed/Carousel)</option><option>16:9 — Landscape</option></select>
+      </div>
+      <div class="field">
+        <label>Version</label>
+        <select id="cr-ver"><option>V1 — First version</option><option>V2 — Variation</option><option>V3 — Iteration</option></select>
+      </div>
+    </div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px">
+      <div class="cl-item" style="border:none;padding:4px 0"><input type="checkbox" id="subs-cb"><label for="subs-cb" style="margin-left:6px;font-size:12px">Subtitles / captions</label></div>
+      <div class="cl-item" style="border:none;padding:4px 0"><input type="checkbox" id="hookscreen-cb"><label for="hookscreen-cb" style="margin-left:6px;font-size:12px">Hook text on-screen</label></div>
+      <div class="cl-item" style="border:none;padding:4px 0"><input type="checkbox" id="ctascreen-cb"><label for="ctascreen-cb" style="margin-left:6px;font-size:12px">CTA on-screen</label></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Rule of 3 — every ad set needs all three</div>
+    <div class="good-box">1 · Direct offer — coach talking head (Tyler or Amauche)<br>2 · Emotional / community — clients training, class energy, group footage<br>3 · UGC or testimonial — member-generated, authentic result</div>
+    <div class="field" style="margin-top:10px">
+      <label>Creative file link</label>
+      <input type="text" id="cr-link" placeholder="Google Drive / Canva / Meta Ads Library link">
+    </div>
+    <div class="field">
+      <label>Production notes</label>
+      <textarea id="cr-notes" rows="2" placeholder="e.g. Tyler opens with a question, shows class footage, ends with CTA text overlay at :12"></textarea>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn" onclick="goTo(8)">← Back</button>
+    <button class="btn btn-primary" onclick="nextStep(9)">Next: Summary & naming →</button>
+  </div>
+</div>
+
+<!-- ==================== STEP 10: SUMMARY ==================== -->
+<div class="step-page" id="page-10">
+  <div class="page-header">
+    <div class="step-tag">Step 11 of 12 · Launch</div>
+    <h2>Summary & naming</h2>
+    <p>Review your full build. Naming must communicate funnel stage, program, geo, offer, and objective.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">Auto-generated naming</div>
+    <div class="field"><label>Campaign name</label><div class="name-preview" id="sum-campaign">—</div></div>
+    <div class="field"><label>Ad set name</label><div class="name-preview" id="sum-adset">—</div></div>
+    <div class="field"><label>Ad name</label><div class="name-preview" id="sum-ad">—</div></div>
+    <div style="font-size:11px;color:#aaa;margin-top:4px">Full example: BBT | GOAL-BookCall | GEO-CLT10mi | OFF-12wk | OBJ-Leads | ATTB-7dC_noV | CBO$50</div>
+  </div>
+  <div class="card">
+    <div class="card-title">Full build summary</div>
+    <div id="summary-content"></div>
+    <div class="btn-row"><button class="btn btn-sm" onclick="copySummary()">Copy summary text</button></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn" onclick="goTo(9)">← Back</button>
+    <button class="btn btn-primary" onclick="nextStep(10)">Next: Pre-launch QA →</button>
+  </div>
+</div>
+
+<!-- ==================== STEP 11: QA ==================== -->
+<div class="step-page" id="page-11">
+  <div class="page-header">
+    <div class="step-tag">Step 12 of 12 · Launch</div>
+    <h2>Pre-launch QA checklist</h2>
+    <p>Every item must be checked before the ad goes live. This is the gate between building and spending.</p>
+  </div>
+  <div class="launch-banner" id="launch-banner">✓ All items checked — this ad is ready to launch in Facebook Ads Manager.</div>
+  <div class="card">
+    <div id="qa-list"></div>
+    <div style="margin-top:10px;font-size:12px;color:#999">Checked: <span id="qa-done" style="font-weight:600;color:#1a1a1a">0</span> / <span id="qa-total">0</span></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn" onclick="goTo(10)">← Back</button>
+    <button class="btn btn-primary" onclick="alert('Open Facebook Ads Manager and build your campaign using this brief. Good luck! 🚀')">Open Ads Manager ↗</button>
+    <button class="btn" onclick="if(confirm('Start a new ad build? This clears all selections.'))location.reload()">Start new ad</button>
+  </div>
+</div>
+
+<!-- ==================== OPTIMIZATION CADENCE ==================== -->
+<div class="step-page" id="page-12">
+  <div class="page-header">
+    <div class="step-tag">After Launch · Reference</div>
+    <h2>Optimization cadence</h2>
+    <p>What to do after the ad goes live. This removes emotion from decisions. Follow the schedule — don't touch things early.</p>
+  </div>
+  <div class="cadence-day">
+    <h4><span class="badge bb">Day 1–3</span> Monitor only — do not touch</h4>
+    <ul>
+      <li>Kill only truly broken ads: disapproved, wrong link, wrong creative</li>
+      <li>Do NOT pause based on CPL yet — Meta is still in learning phase</li>
+      <li>Wait for at least 2,000 impressions per ad before judging CTR</li>
+      <li>Check: are leads coming in and hitting GHL correctly?</li>
+    </ul>
+  </div>
+  <div class="cadence-day">
+    <h4><span class="badge ba">Day 3–5</span> First real optimization window</h4>
+    <ul>
+      <li>CTR (link) below 0.8% → replace hooks and creative immediately</li>
+      <li>CPL more than 40% over target → swap audience or copy, check form friction</li>
+      <li>If one ad set is clearly winning → shift budget toward it</li>
+      <li>Check show rate and book rate in GHL — leads ≠ booked calls</li>
+    </ul>
+  </div>
+  <div class="cadence-day">
+    <h4><span class="badge bg">Week 2</span> Scale winners</h4>
+    <ul>
+      <li>Scale winning ad sets by +20–30% budget increase</li>
+      <li>Duplicate winning audience to a new creative set</li>
+      <li>Shift budget away from high CPL ad sets — don't let losers drain</li>
+      <li>Target CTR (link) benchmark: 0.9–1.2% minimum</li>
+    </ul>
+  </div>
+  <div class="cadence-day">
+    <h4><span class="badge bp">Weekly ongoing</span> Refresh and rotate</h4>
+    <ul>
+      <li>Refresh 1–2 creatives per week — local fatigue hits fast for brick-and-mortar</li>
+      <li>Rotate seasonal angles: Halloween, Thanksgiving, New Year, Summer, etc.</li>
+      <li>Weekly review: CPL, Book Rate (calls/leads), Show Rate, Close Rate, Cost per Sale</li>
+      <li>Kill / keep / iterate decision — make it in writing, not verbally</li>
+    </ul>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <div class="card-title">Kill rules — when to turn an ad off</div>
+    <div class="danger-box">
+      CTR (link) below 0.8% after 2,000+ impressions → kill creative, replace hook<br>
+      CPL more than 40% over target by Day 5 → kill ad set or swap audience<br>
+      Zero leads after $50+ spend → kill and diagnose (pixel? form? landing page?)<br>
+      Same creative running 4+ weeks with declining CTR → creative fatigue, replace
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Scale rules — when to increase budget</div>
+    <div class="good-box">
+      CTR above 1.2% consistently → scale +20–30% budget, not more<br>
+      CPL at or below target for 5+ days → duplicate to new audience<br>
+      Book rate above 60% → this offer is working, push more volume<br>
+      Never scale more than 30% at once — triggers learning phase reset
+    </div>
+  </div>
+</div>
+
+<!-- ==================== AD TRACKER ==================== -->
+<div class="step-page" id="page-13">
+  <div class="page-header">
+    <div class="step-tag">After Launch · Tracker</div>
+    <h2>Ad tracker & performance log</h2>
+    <p>Log every ad you run. Track what's working across programs so decisions are based on data, not gut.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">Log a campaign result</div>
+    <div class="row3">
+      <div class="field"><label>Program</label>
+        <select id="tr-prog"><option>P1 — PushPlay</option><option>P2 — Challenges</option><option>P3 — Accountability</option><option>P4 — Conditioning</option><option>P5 — S&C</option><option>P6 — Small Groups</option><option>P7 — Personalized Performance</option></select>
+      </div>
+      <div class="field"><label>Style</label>
+        <select id="tr-style"><option>Hormozi</option><option>Shiver</option></select>
+      </div>
+      <div class="field"><label>Status</label>
+        <select id="tr-status"><option>Draft</option><option>Live</option><option>Paused</option><option>Done</option></select>
+      </div>
+    </div>
+    <div class="row3">
+      <div class="field"><label>Daily budget</label><input type="text" id="tr-budget" placeholder="$20/day"></div>
+      <div class="field"><label>CPL ($)</label><input type="text" id="tr-cpl" placeholder="e.g. 18.50"></div>
+      <div class="field"><label>CTR (%)</label><input type="text" id="tr-ctr" placeholder="e.g. 1.2"></div>
+    </div>
+    <div class="row3">
+      <div class="field"><label>Leads</label><input type="text" id="tr-leads" placeholder="e.g. 12"></div>
+      <div class="field"><label>Booked calls</label><input type="text" id="tr-calls" placeholder="e.g. 7"></div>
+      <div class="field"><label>Sales / closes</label><input type="text" id="tr-sales" placeholder="e.g. 3"></div>
+    </div>
+    <div class="field"><label>Hook used</label><input type="text" id="tr-hook" placeholder="First line of the ad"></div>
+    <div class="field"><label>Notes / what to do next</label><textarea id="tr-notes" rows="2" placeholder="What worked, what didn't, what to change"></textarea></div>
+    <div class="btn-row"><button class="btn btn-primary" onclick="logAd()">Save to log</button></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Performance log</div>
+    <div id="tracker-output"><p class="empty-state">No ads logged yet. Build and launch a campaign, then come back here to log results.</p></div>
+  </div>
+</div>
+
+<!-- ==================== META EXECUTION RECIPE ==================== -->
+<div class="step-page" id="page-14">
+  <div class="page-header">
+    <div class="step-tag">Meta Execution Recipe · Send to your team</div>
+    <h2>Meta Ads Manager — step-by-step build recipe</h2>
+    <p>Auto-populated from your selections. Every field in Ads Manager in the exact order it appears on screen. Print or export as PDF and hand to your team.</p>
+  </div>
+
+  <div style="display:flex;gap:8px;margin-bottom:1.5rem;flex-wrap:wrap">
+    <button class="btn btn-primary" onclick="exportPDF()">⬇ Save as PDF</button>
+    <button class="btn" onclick="copyRecipeText()">Copy all text</button>
+    <div id="recipe-prog-badge" style="margin-left:auto;align-self:center;font-size:13px;color:#666">Complete Steps 1–12 first to auto-populate</div>
+  </div>
+
+  <div id="recipe-content">
+    <div class="info-box">Complete the 12 build steps first, then return here to generate your full execution recipe.</div>
+  </div>
+</div>
+
+</main>
+
+<script>
+// ===== PROGRAM DATA =====
+const PROGRAMS = {
+  p1:{label:'P1',name:'BBT PushPlay',color:'bb',tier:'P1',
+    radius:'National — no ZIP restriction (digital product)',
+    radId:null,
+    geo:'National / Regional — this is a digital product. Do NOT restrict to Charlotte ZIPs.',
+    avatar:'Beginners, people who can\'t commit in-person yet, and current BBT members wanting at-home training',
+    offer:'Low monthly subscription — $20–$50/mo',
+    entry:'Low monthly subscription',
+    differentiation:'BBT coaching quality from your phone. No gym needed. Lowest barrier entry into the BBT ecosystem. Stepping stone to in-person programs.',
+    competitive:'This does NOT compete with local Charlotte bootcamps. It competes with Peloton, Beachbody, Nike Training Club. Angle: real coaching, not an algorithm.',
+    angle:'Lowest barrier. Digital convenience. BBT quality from anywhere.',
+    defaultStyle:'hormozi',
+    defaultInterests:['Fitness & Wellness','Weight loss','Women\'s fitness'],
+    defaultAges:['18-24','25-34','35-44'],
+    defaultGender:'all',
+    hooks:{
+      hormozi:['Get coached by BBT — from your couch, your hotel, your backyard.','You don\'t need a gym membership to get real results.','BBT coaching is now in your pocket. Here\'s how it works.'],
+      shiver:['Why most at-home workouts fail — and what makes this different.','The real reason people quit home fitness programs (it\'s not motivation).','What if you had a real coach — without leaving your house?']
+    },
+    defaultCTA:'Learn More',
+    zips:[]
+  },
+  p2:{label:'P2',name:'BBT Challenges',color:'ba',tier:'P2',
+    radius:'10 miles from gym',
+    radId:'rad-10',
+    geo:'Charlotte core ZIPs. 10-mile radius. This is a lead gen engine — volume matters so don\'t go too tight.',
+    avatar:'Short-term commitment seekers, deadline-motivated people, and cold audiences who need a reason to try BBT',
+    offer:'Paid challenge $99–$199 OR free/low-cost entry challenge → upsell',
+    entry:'Paid challenge or lead magnet → upsell',
+    differentiation:'Time-bound creates urgency no evergreen program has. Best volume lead generator. Proof-of-concept that ascends people into P3–P7.',
+    competitive:'You\'re competing with every "6-week challenge" in Charlotte. Win on coaching quality, community, and results — not just price or duration.',
+    angle:'Urgency. Specific outcome. Clear timeframe. Community proof.',
+    defaultStyle:'hormozi',
+    defaultInterests:['Fitness & Wellness','Group Fitness','Bootcamp','Weight loss'],
+    defaultAges:['25-34','35-44','45-54'],
+    defaultGender:'women',
+    hooks:{
+      hormozi:['Charlotte — our next challenge starts [date]. Here\'s what happens inside.','Most women quit fitness challenges in week 2. Here\'s why ours is different.','$[price] to change your body in [X] weeks. Here\'s exactly what you get.'],
+      shiver:['Why 90% of fitness challenges fail — and what we do instead.','The truth about transformation challenges most gyms won\'t tell you.','Before you join another challenge, watch this.']
+    },
+    defaultCTA:'Sign Up',
+    zips:['28269','28078','28262','28213','28206','28216']
+  },
+  p3:{label:'P3',name:'BBT Accountability',color:'bp',tier:'P3',
+    radius:'30 miles — regional reach',
+    radId:'rad-30',
+    geo:'Full Charlotte metro + 30-mile radius. This program is unique enough that people will drive. Expand ZIP targeting significantly.',
+    avatar:'Women 28–45 who\'ve tried everything and can\'t stay consistent. They\'ve failed solo. They need a coach checking on them.',
+    offer:'Free consultation / strategy call',
+    entry:'Free consultation / strategy call',
+    differentiation:'Most unique BBT program. Hardest to replicate nearby. Personal accountability layer that no bootcamp or group class provides.',
+    competitive:'You don\'t compete with bootcamps here — you compete with doing nothing. The person who searches "accountability coach Charlotte" is YOUR buyer. Own that positioning.',
+    angle:'Identity. Failed solo. Need someone in their corner. This is different because of the relationship, not just the workout.',
+    defaultStyle:'shiver',
+    defaultInterests:['Fitness & Wellness','Women\'s fitness','Weight loss','Personal Training'],
+    defaultAges:['25-34','35-44','45-54'],
+    defaultGender:'women',
+    hooks:{
+      hormozi:['What if you had someone checking on you every single week?','The only thing standing between you and your goals is accountability. Here\'s proof.','Charlotte women — this program has a 94% consistency rate. Here\'s why.'],
+      shiver:['Here\'s the real reason you keep starting over — and how to finally stop.','After coaching hundreds of women, I found the one thing that actually creates consistency.','You\'ve tried motivation. You\'ve tried discipline. Have you tried this?']
+    },
+    defaultCTA:'Book Now',
+    zips:['28269','28078','28262','28213','28206','28216','28208','28215','28027','28214']
+  },
+  p4:{label:'P4',name:'BBT Conditioning',color:'bgr',tier:'P4',
+    radius:'5–7 miles ONLY — tight local',
+    radId:'rad-7',
+    geo:'Tight 5–7 mile radius only. This is a commodity product — people choose a bootcamp close to home. Do NOT waste budget on people 15 miles away.',
+    avatar:'Broad Charlotte adults: convenience-driven, social exercisers, and price-conscious buyers comparing BBT to other local bootcamps',
+    offer:'Direct sign-up at full price',
+    entry:'Direct sign-up at full price',
+    differentiation:'This competes with every bootcamp in Charlotte. You cannot win on convenience or price alone. Win on energy, coaching quality, community, and results. This is the commodity program — your ad must make BBT feel premium, not generic.',
+    competitive:'CRITICAL: Do NOT run generic "group fitness" ads for this program. Every Orange Theory, F45, and independent bootcamp is running those. Your angle must be the BBT community and coaching difference — not just "classes near you."',
+    angle:'Community energy. Coaching quality. Real results from real coaches. Not just another bootcamp.',
+    defaultStyle:'hormozi',
+    defaultInterests:['Fitness & Wellness','Group Fitness','Bootcamp','Gym Membership','HIIT'],
+    defaultAges:['25-34','35-44','45-54'],
+    defaultGender:'women',
+    hooks:{
+      hormozi:['Charlotte — this is what a real group fitness class looks like.','Stop paying for a gym you don\'t go to. Come somewhere you actually want to show up.','Most group fitness classes are just cardio with music. This is different.'],
+      shiver:['Why most group fitness programs don\'t get results — and what BBT does instead.','The difference between a class and a coaching program in Charlotte.','If you\'ve tried bootcamp before and quit, here\'s why it wasn\'t your fault.']
+    },
+    defaultCTA:'Learn More',
+    zips:['28269','28262','28213','28206','28216']
+  },
+  p5:{label:'P5',name:'BBT Strength & Conditioning',color:'bg',tier:'P5',
+    radius:'10 miles',
+    radId:'rad-10',
+    geo:'Charlotte core ZIPs, 10-mile radius. Serious buyers will travel. Don\'t go too broad — this audience is niche.',
+    avatar:'Women and men who want to get stronger (not just skinny), athletes and former athletes wanting structured programming, people who\'ve outgrown group classes, anyone serious about strength',
+    offer:'Free intro / consult session',
+    entry:'Free intro / consult session',
+    differentiation:'Niche and differentiated. Not a bootcamp. Not a gym. Structured, progressive strength programming with real coaching. For people who know what they want.',
+    competitive:'You compete with CrossFit and boutique strength gyms. Win on coaching expertise, programming quality, and the BBT community. Serious buyers research before buying — give them substance.',
+    angle:'Seriousness. Expertise. Real programming. Results-focused. Not for everyone — and that\'s the point.',
+    defaultStyle:'shiver',
+    defaultInterests:['Strength Training','Weightlifting','CrossFit','Personal Training','HIIT'],
+    defaultAges:['25-34','35-44','45-54'],
+    defaultGender:'all',
+    hooks:{
+      hormozi:['You\'ve outgrown group classes. Here\'s what\'s next.','This isn\'t bootcamp. This is strength and conditioning — the right way.','If you\'re serious about getting stronger, Charlotte has one place for this.'],
+      shiver:['Most people lift weights. Very few actually train. Here\'s the difference.','Why group fitness stops working after a while — and what serious people do next.','The program Charlotte athletes trust when they want to get actually strong.']
+    },
+    defaultCTA:'Book Now',
+    zips:['28269','28078','28262','28213','28206','28216']
+  },
+  p6:{label:'P6',name:'BBT Small Groups',color:'p6',tier:'P6',
+    radius:'12–15 miles — premium buyers will drive',
+    radId:'rad-15',
+    geo:'Wider Charlotte radius — 12–15 miles. Premium buyers research more and drive further. Target higher-income ZIP codes if possible.',
+    avatar:'High-achieving professionals who want elite coaching in a tight-knit group setting. People who\'ve maxed out what group classes can give them and need more personalization.',
+    offer:'Application / consultation call',
+    entry:'Application / consultation',
+    differentiation:'Premium, relationship-driven. Small group means real attention, real relationships, real accountability. This is not a class — it\'s a coaching experience.',
+    competitive:'You\'re not competing with bootcamps at this level. You\'re competing with 1-on-1 personal training on price and semi-private studios on quality. Win on the combination: small group intimacy + BBT coaching excellence.',
+    angle:'Exclusivity. Real relationships. Personalized attention in a group setting. Not for everyone.',
+    defaultStyle:'shiver',
+    defaultInterests:['Personal Training','Strength Training','Fitness & Wellness','Women\'s fitness'],
+    defaultAges:['25-34','35-44','45-54'],
+    defaultGender:'women',
+    hooks:{
+      hormozi:['Only [X] spots available. Here\'s what BBT Small Groups looks like inside.','What happens when you combine personal training with the energy of a group? This.','This is the most exclusive program we offer. Here\'s why the waitlist is always full.'],
+      shiver:['Why serious people are moving away from group classes — and what they do instead.','The problem with personal training (and why small group coaching solves it).','If you\'ve always wanted a trainer but love the energy of a group, read this.']
+    },
+    defaultCTA:'Apply Now',
+    zips:['28269','28078','28262','28213','28206','28216','28208','28215','28027']
+  },
+  p7:{label:'P7',name:'BBT Personalized Performance',color:'p7',tier:'P7',
+    radius:'15–20 miles — elite buyers travel',
+    radId:'rad-15',
+    geo:'Broadest radius — 15–20 miles. Your most premium buyers will drive from anywhere in the Charlotte metro. Target premium ZIP codes.',
+    avatar:'High-achieving professionals who want elite private/semi-private coaching. People who need the most help getting results AND want the highest level of personalization. Clients ascending from P3–P6.',
+    offer:'Application / discovery call',
+    entry:'Application / discovery call',
+    differentiation:'Highest tier. Maximum personalization. This is BBT\'s flagship one-on-one or semi-private experience. Worth any drive, any price point, for the right person.',
+    competitive:'You\'re competing with elite personal trainers and private coaches. Win on the BBT system, proven track record, and the full coaching ecosystem behind each client.',
+    angle:'Elite. Personalized. Results guaranteed. For the person who is done guessing and wants a dedicated system built for them.',
+    defaultStyle:'shiver',
+    defaultInterests:['Personal Training','Fitness & Wellness','Strength Training','Women\'s fitness'],
+    defaultAges:['25-34','35-44','45-54'],
+    defaultGender:'all',
+    hooks:{
+      hormozi:['What would change if you had a coach entirely dedicated to your results?','This is the most personalized fitness program in Charlotte. Here\'s what that means.','We built an entire system around one person: you. Here\'s how.'],
+      shiver:['Why most people never reach their fitness goals — and the one thing that changes everything.','The difference between having a plan and having a system built specifically for your body.','If you\'ve worked with trainers before and still haven\'t gotten where you want to be — watch this.']
+    },
+    defaultCTA:'Apply Now',
+    zips:['28269','28078','28262','28213','28206','28216','28208','28215','28027','28214']
+  }
+};
+
+const ALL_ZIPS = [
+  // NORTH CHARLOTTE (BBT's primary zone)
+  {code:'28269',name:'North Charlotte / Norlake',area:'North'},
+  {code:'28262',name:'University City (Central Hub)',area:'North'},
+  {code:'28213',name:'University City / NE Charlotte',area:'North'},
+  {code:'28216',name:'NW Charlotte / Bradfield Farms',area:'North'},
+  {code:'28206',name:'North End / Camp Greene',area:'North'},
+  // NORTH SUBURBS
+  {code:'28078',name:'Huntersville',area:'North Suburbs'},
+  {code:'28036',name:'Davidson',area:'North Suburbs'},
+  {code:'28031',name:'Cornelius',area:'North Suburbs'},
+  {code:'28115',name:'Mooresville (Lake Norman area)',area:'North Suburbs'},
+  {code:'28117',name:'Mooresville / Lake Norman',area:'North Suburbs'},
+  // WEST CHARLOTTE
+  {code:'28208',name:'West Charlotte / Airport area',area:'West'},
+  {code:'28214',name:'Outer West / Mountain Island',area:'West'},
+  {code:'28216',name:'Coulwood / Brookshire',area:'West'},
+  // EAST CHARLOTTE
+  {code:'28215',name:'East Charlotte / Eastland',area:'East'},
+  {code:'28205',name:'Plaza Midwood / NoDa / Villa Heights',area:'East'},
+  {code:'28212',name:'Eastway / Grier Heights / Cotswold East',area:'East'},
+  {code:'28227',name:'Mint Hill / East Charlotte outer',area:'East'},
+  // MIDTOWN / UPTOWN
+  {code:'28202',name:'Uptown / Center City',area:'Midtown'},
+  {code:'28203',name:'South End / Dilworth / Wilmore',area:'Midtown'},
+  {code:'28204',name:'Elizabeth / Plaza Midwood / Dilworth',area:'Midtown'},
+  {code:'28207',name:'Eastover / Elizabeth / Myers Park',area:'Midtown'},
+  {code:'28209',name:'Myers Park / Dilworth / Sedgefield',area:'Midtown'},
+  {code:'28211',name:'Cotswold / Eastover / Providence',area:'Midtown'},
+  // SOUTH CHARLOTTE
+  {code:'28226',name:'South Charlotte / Quail Hollow',area:'South'},
+  {code:'28270',name:'Matthews / Providence Road',area:'South'},
+  {code:'28277',name:'Ballantyne',area:'South'},
+  {code:'28273',name:'Steele Creek / Rivergate',area:'South'},
+  {code:'28278',name:'Lake Wylie / Steele Creek outer',area:'South'},
+  // NEARBY CITIES
+  {code:'28027',name:'Concord',area:'Nearby'},
+  {code:'28025',name:'Concord (central)',area:'Nearby'},
+  {code:'28104',name:'Matthews',area:'Nearby'},
+  {code:'28105',name:'Matthews (east)',area:'Nearby'},
+  {code:'28134',name:'Pineville',area:'Nearby'},
+  {code:'28217',name:'South Tryon / Billy Graham area',area:'Nearby'},
+  {code:'28210',name:'South Blvd / Montford / Archdale',area:'Nearby'},
+];
+
+const AVOID_ZIPS = ['28210','28134','28277','28270','28217','28273'];
+
+// ===== STATE =====
+let currentStep = 0;
+let selectedProgram = null;
+let adLog = JSON.parse(localStorage.getItem('bbt_ads_v2')||'[]');
+const stepDone = new Array(14).fill(false);
+
+// ===== NAV =====
+function goTo(n){
+  document.getElementById('page-'+currentStep).classList.remove('active');
+  document.getElementById('nav-'+currentStep).classList.remove('active');
+  document.getElementById('sn-'+currentStep).classList.remove('active-num');
+  currentStep = n;
+  document.getElementById('page-'+n).classList.add('active');
+  document.getElementById('nav-'+n).classList.add('active');
+  document.getElementById('sn-'+n).classList.add('active-num');
+  window.scrollTo(0,0);
+  if(n===1) populateBriefCard();
+  if(n===4) populateGeoCard();
+  if(n===7) populateHookCard();
+  if(n===10) buildSummary();
+  if(n===11) buildQA();
+  if(n===13) renderTracker();
+  if(n===14) renderRecipe();
+}
+
+function nextStep(n){
+  stepDone[n]=true;
+  const sn=document.getElementById('sn-'+n);
+  sn.classList.remove('active-num');
+  sn.classList.add('done');
+  sn.textContent='✓';
+  updateProgress();
+  goTo(n+1);
+}
+
+function updateProgress(){
+  const done=stepDone.filter(Boolean).length;
+  const total=12;
+  document.getElementById('prog-fill').style.width=(done/total*100)+'%';
+  document.getElementById('prog-text').textContent=done+' of '+total+' steps complete';
+}
+
+// ===== PROGRAM SELECTION =====
+function selectProgram(pid){
+  selectedProgram = pid;
+  const p = PROGRAMS[pid];
+  document.querySelectorAll('#program-selector .opt').forEach(el=>el.classList.remove('sel'));
+  document.getElementById('prog-'+pid).classList.add('sel');
+  document.getElementById('active-prog-pill').textContent=p.tier+' — '+p.name;
+  document.getElementById('active-prog-pill').className='prog-pill active-prog';
+
+  // Show detail card
+  const dc = document.getElementById('prog-detail-card');
+  dc.style.display='block';
+  dc.innerHTML=buildProgCard(pid,'p'+pid.slice(1));
+
+  // Pre-fill brief fields
+  setTimeout(()=>{
+    const offerEl=document.getElementById('offer');
+    const avatarEl=document.getElementById('avatar');
+    if(offerEl) offerEl.value=p.entry;
+    if(avatarEl) avatarEl.value=p.avatar;
+    updateNaming();
+  },100);
+
+  // Pre-select radius
+  if(p.radId){
+    const allRads=['rad-5','rad-7','rad-10','rad-12','rad-15','rad-30'];
+    allRads.forEach(r=>{const el=document.getElementById(r);if(el)el.classList.remove('sel');});
+    const radEl=document.getElementById(p.radId);
+    if(radEl) radEl.classList.add('sel');
+  }
+
+  // Pre-select interests
+  document.querySelectorAll('#int-fitness .tag, #int-health .tag, #int-life .tag, #int-demo .tag').forEach(t=>{
+    t.classList.remove('sel');
+    if(p.defaultInterests.includes(t.dataset.val)) t.classList.add('sel');
+  });
+  updateIntPreview();
+
+  // Pre-select ages
+  document.querySelectorAll('#age-tags .tag').forEach(t=>{
+    t.classList.remove('sel');
+    if(p.defaultAges.includes(t.dataset.val)) t.classList.add('sel');
+  });
+  updateAgePreview();
+
+  // Pre-select gender
+  selectOpt('gen',['gen-women','gen-all','gen-men'],'gen-'+p.defaultGender);
+
+  // Pre-select style
+  selectStyle(p.defaultStyle);
+
+  // Pre-select CTA
+  const ctaMap={'Book Now':'book','Learn More':'learn','Send Message':'msg','Sign Up':'signup','Visit Instagram Profile':'visit','Apply Now':'apply'};
+  selectOpt('cta',['cta-book','cta-learn','cta-msg','cta-signup','cta-visit','cta-apply'],'cta-'+ctaMap[p.defaultCTA]);
+}
+
+function buildProgCard(pid,colorClass){
+  const p=PROGRAMS[pid];
+  const classMap={p1:'p1',p2:'p2',p3:'p3',p4:'p4',p5:'p5',p6:'p6',p7:'p7'};
+  const cls=classMap[pid]||'p4';
+  return `<div class="prog-card ${cls}">
+    <div class="prog-label"><span class="badge b${p.color==='bgr'?'gr':p.color}">${p.tier}</span>${p.name} — Strategy Card</div>
+    <div class="prog-grid">
+      <div class="prog-stat"><div class="prog-stat-label">Geo radius</div><div class="prog-stat-val">${p.radius}</div></div>
+      <div class="prog-stat"><div class="prog-stat-label">Entry offer</div><div class="prog-stat-val">${p.offer}</div></div>
+      <div class="prog-stat"><div class="prog-stat-label">Default style</div><div class="prog-stat-val">${p.defaultStyle==='hormozi'?'Hormozi method':'Dr. Shiver method'}</div></div>
+    </div>
+    <div class="positioning-box"><strong>Competitive positioning — read before writing any copy</strong>${p.competitive}</div>
+    <div class="positioning-box" style="margin-top:6px"><strong>Default ad angle</strong>${p.angle}</div>
+  </div>`;
+}
+
+// ===== FUNNEL SELECTOR =====
+const FUNNEL_DATA = {
+  TOFU:{
+    guidance:'<strong>TOFU — Awareness:</strong> Cold audiences who don\'t know BBT yet. Your job here is to stop the scroll and build familiarity. Don\'t sell hard — introduce. Budget allocation: 60% of total paid spend.',
+    goals:{
+      p1:['Awareness','Traffic','Engagement'],
+      p2:['Lead','Engagement','Traffic'],
+      p3:['Lead','Awareness','Traffic'],
+      p4:['Awareness','Engagement','Traffic'],
+      p5:['Awareness','Lead','Traffic'],
+      p6:['Awareness','Lead','Traffic'],
+      p7:['Awareness','Lead','Traffic'],
+    }
+  },
+  MOFU:{
+    guidance:'<strong>MOFU — Consideration:</strong> Warm audiences who\'ve seen you but haven\'t acted. Educate, build trust, show proof. Retarget IG engagers, video viewers, and website visitors. Budget: 30% of total paid spend.',
+    goals:{
+      p1:['Traffic','Engagement','Messages'],
+      p2:['Lead','Messages','BookCall'],
+      p3:['BookCall','Lead','Messages'],
+      p4:['Lead','Engagement','Messages'],
+      p5:['BookCall','Lead','Messages'],
+      p6:['BookCall','Lead','Messages'],
+      p7:['BookCall','Messages','Lead'],
+    }
+  },
+  BOFU:{
+    guidance:'<strong>BOFU — Conversion:</strong> Hot leads, past inquiries, and retarget list. Remove friction, create urgency, close the decision. Small audience, higher CPM, highest intent. Budget: 10% of total paid spend.',
+    goals:{
+      p1:['Traffic','Messages','Lead'],
+      p2:['BookCall','Lead','Messages'],
+      p3:['BookCall','Messages','Lead'],
+      p4:['BookCall','Lead','Messages'],
+      p5:['BookCall','Messages','Lead'],
+      p6:['BookCall','Messages','Lead'],
+      p7:['BookCall','Messages','Lead'],
+    }
+  }
+};
+
+const GOAL_META = {
+  Awareness:{label:'Brand Awareness',desc:'Maximize reach to new eyes. Best for cold TOFU brand plays.',badge:'bb',warn:null},
+  Traffic:{label:'Website Traffic',desc:'Drive people to your site or landing page. Good for pixel warming.',badge:'bb',warn:null},
+  Engagement:{label:'Engagement',desc:'Maximize video views, likes, and shares. Best TOFU video play.',badge:'bb',warn:null},
+  Lead:{label:'Generate Leads',desc:'Meta lead form or website form submissions. Best for MOFU.',badge:'ba',warn:'Not recommended at TOFU — cold audiences haven\'t warmed up yet.'},
+  BookCall:{label:'Book Calls',desc:'Drive consultation or strategy call bookings. MOFU/BOFU best.',badge:'bg',warn:'Only use when audience is warm or retargeting — not cold TOFU.'},
+  Messages:{label:'Get Messages',desc:'DM-based flow through GHL Messenger. Works for warm audiences.',badge:'ba',warn:null},
+};
+
+// Program-level funnel recommendation
+const PROG_FUNNEL_REC = {
+  p1:'TOFU', p2:'TOFU', p3:'TOFU', p4:'TOFU', p5:'TOFU', p6:'TOFU', p7:'TOFU'
+};
+
+function selectFunnel(f){
+  ['TOFU','MOFU','BOFU'].forEach(x=>{
+    document.getElementById('fn-'+x).classList.remove('sel');
+    document.getElementById('fn-'+x+'-rec').style.display='none';
+  });
+  document.getElementById('fn-'+f).classList.add('sel');
+  const guidance = document.getElementById('funnel-guidance');
+  guidance.style.display='block';
+  guidance.innerHTML = FUNNEL_DATA[f].guidance;
+  // Update goal options
+  renderGoalOptions(f);
+  updateNaming();
+  updateCostCalc();
+}
+
+function renderGoalOptions(funnel){
+  if(!selectedProgram) return;
+  const recGoals = FUNNEL_DATA[funnel]?.goals[selectedProgram] || ['Awareness','Lead','Traffic'];
+  const allGoals = Object.keys(GOAL_META);
+  const container = document.getElementById('goal-options');
+  if(!container) return;
+  // Show recommended first, then others dimmed
+  const ordered = [...recGoals, ...allGoals.filter(g=>!recGoals.includes(g))];
+  container.innerHTML = ordered.map((g,i)=>{
+    const m = GOAL_META[g];
+    const isRec = recGoals.includes(g);
+    const isFirst = i===0;
+    return `<div class="opt${isFirst?' sel':''}" id="goal-${g}" onclick="selectGoal('${g}')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px">
+        <span class="badge b${m.badge}">${m.label}</span>
+        ${isRec?'<span class="badge bg" style="font-size:10px">✓ Rec</span>':'<span style="font-size:10px;color:#ccc">—</span>'}
+      </div>
+      <p style="font-size:12px;color:#555;line-height:1.5">${m.desc}</p>
+      ${m.warn&&!isRec?`<div style="font-size:11px;color:#A32D2D;margin-top:4px">⚠ ${m.warn}</div>`:''}
+    </div>`;
+  }).join('');
+  // Set goal state to first recommended
+  window._selectedGoal = recGoals[0];
+}
+
+function selectGoal(g){
+  document.querySelectorAll('[id^="goal-"]').forEach(el=>el.classList.remove('sel'));
+  const el = document.getElementById('goal-'+g);
+  if(el) el.classList.add('sel');
+  window._selectedGoal = g;
+  const m = GOAL_META[g];
+  const warn = document.getElementById('goal-warning');
+  const funnel = document.querySelector('[id^="fn-"].sel')?.id?.replace('fn-','') || 'TOFU';
+  if(m.warn && funnel==='TOFU'){
+    warn.style.display='block';
+    warn.innerHTML=`<div class="warn-box">⚠ ${m.warn}</div>`;
+  } else {
+    warn.style.display='none';
+  }
+  updateNaming();
+}
+
+// ===== TEST TYPE =====
+const TEST_DATA = {
+  probe:{days:7,label:'1-week probe',guidance:'Quick validation run. Spend ~$70–$140 total. Only judge CTR — don\'t make CPL decisions yet. At 2,000 impressions: CTR above 1% = keep, below 0.8% = kill hook and retest.'},
+  ramp:{days:30,label:'Full ramp (30 days)',guidance:'Standard campaign run. Meta needs ~7 days and 50+ optimization events to exit learning phase. Don\'t touch the campaign in the first 3 days. First optimization window is Day 3–5.'},
+  challenge:{days:14,label:'Challenge campaign',guidance:'Set hard start and end dates tied to your P2 Challenge launch. Front-load spend toward launch week. Create urgency in copy. Have a follow-up retargeting campaign ready for people who didn\'t convert.'},
+  evergreen:{days:0,label:'Evergreen (ongoing)',guidance:'No end date. Runs continuously. Refresh 1–2 creatives every 2 weeks to fight local ad fatigue. Review performance weekly and rotate underperforming ads.'},
+};
+
+function selectTest(t){
+  ['probe','ramp','challenge','evergreen'].forEach(x=>document.getElementById('test-'+x).classList.remove('sel'));
+  document.getElementById('test-'+t).classList.add('sel');
+  window._selectedTest = t;
+  const td = TEST_DATA[t];
+  const g = document.getElementById('test-guidance');
+  g.style.display='block';
+  g.innerHTML=`<strong>${td.label}:</strong> ${td.guidance}`;
+  // Auto-set end date for fixed-length tests
+  const startEl = document.getElementById('start-date');
+  const endEl = document.getElementById('end-date');
+  if(startEl.value && td.days > 0){
+    const start = new Date(startEl.value);
+    start.setDate(start.getDate() + td.days);
+    endEl.value = start.toISOString().split('T')[0];
+  }
+  if(t==='evergreen'){
+    endEl.value='';
+    document.getElementById('end-date-label').textContent='(not required — ongoing)';
+    document.getElementById('end-date-hint').textContent='Evergreen campaigns run until manually paused.';
+  } else {
+    document.getElementById('end-date-label').textContent='(required for this test type)';
+  }
+  updateDates();
+}
+
+// ===== DATES & COST CALC =====
+function updateDates(){
+  const start = document.getElementById('start-date').value;
+  const end = document.getElementById('end-date').value;
+  const summary = document.getElementById('date-summary');
+  if(start){
+    const startD = new Date(start);
+    const days = end ? Math.ceil((new Date(end)-startD)/(1000*60*60*24)) : null;
+    summary.style.display='block';
+    const startFmt = startD.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    if(days && days > 0){
+      const endD = new Date(end);
+      const endFmt = endD.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+      summary.innerHTML=`Running <strong>${days} days</strong> · ${startFmt} → ${endFmt}`;
+    } else {
+      summary.innerHTML=`Starts <strong>${startFmt}</strong> · No end date (ongoing)`;
+    }
+    updateCostCalc();
+  } else {
+    summary.style.display='none';
+  }
+  updateNaming();
+}
+
+function updateCostCalc(){
+  const start = document.getElementById('start-date')?.value;
+  const end = document.getElementById('end-date')?.value;
+  const budgetEl = document.getElementById('daily-budget');
+  const dailyBudget = budgetEl ? parseInt(budgetEl.value.replace(/[^0-9]/g,'')) || 20 : 20;
+  if(!start) return;
+  const days = end ? Math.ceil((new Date(end)-new Date(start))/(1000*60*60*24)) : null;
+  const calc = document.getElementById('cost-calculator');
+  if(!calc) return;
+  calc.style.display='block';
+  document.getElementById('cost-daily').textContent='$'+dailyBudget;
+  document.getElementById('cost-days').textContent=days||'∞';
+  document.getElementById('cost-total').textContent=days?'$'+(dailyBudget*days).toLocaleString():'Ongoing';
+  // Estimate leads: avg CPL for BBT ~$15–$35, use $25 midpoint
+  const estLeads = days ? Math.round((dailyBudget*days)/25) : '—';
+  document.getElementById('cost-leads').textContent=days?estLeads+'–'+(Math.round((dailyBudget*days)/15)):'—';
+}
+
+// ===== AVATAR BUILDER =====
+function toggleAvatarTag(el){
+  el.classList.toggle('sel');
+  buildAvatarSummary();
+}
+
+function buildAvatarSummary(){
+  const who=[...document.querySelectorAll('#avatar-who .tag.sel')].map(t=>t.dataset.val);
+  const pain=[...document.querySelectorAll('#avatar-pain .tag.sel')].map(t=>t.dataset.val);
+  const want=[...document.querySelectorAll('#avatar-want .tag.sel')].map(t=>t.dataset.val);
+  const journeyEl=document.querySelector('[id^="journey-"].sel');
+  const journey=journeyEl?journeyEl.id.replace('journey-',''):'';
+  let summary='';
+  if(who.length) summary+=who.join(', ');
+  if(pain.length) summary+=(summary?' · ':'')+`Pain: ${pain.join(', ')}`;
+  if(want.length) summary+=(summary?' · ':'')+`Goal: ${want.join(', ')}`;
+  if(journey) summary+=(summary?' · ':'')+`Level: ${journey}`;
+  const avatarEl=document.getElementById('avatar');
+  if(avatarEl && summary) avatarEl.value=summary;
+}
+
+// ===== PROOF ASSETS =====
+function toggleProofTag(el){
+  el.classList.toggle('sel');
+  updateProofSummary();
+}
+
+function updateProofSummary(){
+  const all=[...document.querySelectorAll('#proof-video .tag.sel, #proof-photo .tag.sel, #proof-written .tag.sel')].map(t=>t.dataset.val);
+  const hasVideo=document.querySelectorAll('#proof-video .tag.sel').length>0;
+  const warn=document.getElementById('proof-warning');
+  const sum=document.getElementById('proof-summary');
+  if(!hasVideo && all.length>0){
+    warn.style.display='block';
+    warn.innerHTML='⚠ No video assets selected. Video (especially Reels/UGC) outperforms static by 3–5x for BBT TOFU ads. Prioritize getting at least one video asset before launching.';
+  } else {
+    warn.style.display='none';
+  }
+  if(all.length>0){
+    sum.innerHTML=`<strong>${all.length} proof asset${all.length>1?'s':''} available:</strong> ${all.join(' · ')}`;
+  } else {
+    sum.innerHTML='';
+  }
+}
+
+// ===== BRIEF SUMMARY & FEEDBACK =====
+function generateBriefSummary(){
+  const card=document.getElementById('brief-summary-card');
+  if(!card) return;
+  card.style.display='block';
+  const program=selectedProgram?PROGRAMS[selectedProgram].name:'—';
+  const funnel=document.querySelector('[id^="fn-"].sel')?.id?.replace('fn-','')||'—';
+  const goal=window._selectedGoal||'—';
+  const testType=window._selectedTest||'—';
+  const start=document.getElementById('start-date')?.value||'—';
+  const end=document.getElementById('end-date')?.value||'—';
+  const offer=document.getElementById('offer')?.value||'—';
+  const face=document.getElementById('face')?.value||'—';
+  const avatar=document.getElementById('avatar')?.value||'—';
+  const pain=[...document.querySelectorAll('#avatar-pain .tag.sel')].map(t=>t.dataset.val).join(', ')||'—';
+  const want=[...document.querySelectorAll('#avatar-want .tag.sel')].map(t=>t.dataset.val).join(', ')||'—';
+  const proofCount=document.querySelectorAll('#proof-video .tag.sel, #proof-photo .tag.sel, #proof-written .tag.sel').length;
+  const hasVideo=document.querySelectorAll('#proof-video .tag.sel').length>0;
+  const rows=[
+    {k:'Program',v:program},
+    {k:'Funnel stage',v:funnel},
+    {k:'Primary goal',v:goal},
+    {k:'Test type',v:TEST_DATA[testType]?.label||testType},
+    {k:'Start date',v:start},
+    {k:'End date',v:end||'Ongoing'},
+    {k:'Offer',v:offer},
+    {k:'On-camera face',v:face},
+    {k:'Avatar summary',v:avatar},
+    {k:'Their core pain',v:pain},
+    {k:'Their desired outcome',v:want},
+    {k:'Proof assets',v:proofCount+' assets available'+(hasVideo?' (includes video)':' — ⚠ no video')},
+  ];
+  document.getElementById('brief-summary-rows').innerHTML=rows.map(r=>`
+    <div class="sum-row"><div class="sum-key">${r.k}</div><div class="sum-val">${r.v}</div></div>
+  `).join('');
+
+  // Feedback scoring
+  const feedback=[];
+  let score=0;
+  if(selectedProgram){score+=15;} else{feedback.push({type:'warn',msg:'No program selected — go back to Step 1.'});}
+  if(funnel!=='—'){score+=10;}
+  if(goal!=='—'){score+=10;}
+  if(start!=='—'){score+=10;}else{feedback.push({type:'warn',msg:'No start date set. Add one before launching.'});}
+  if(offer&&offer.length>5){score+=10;}else{feedback.push({type:'warn',msg:'Offer is blank or too vague. Be specific — "Free Strategy Call" beats "Free Consultation".'});}
+  if(proofCount>=2){score+=15;}else if(proofCount===1){score+=7;feedback.push({type:'info',msg:'Only 1 proof asset selected. Try to have at least 2 — a video and a written testimonial minimum.'});}else{feedback.push({type:'warn',msg:'No proof assets selected. You need something to back up your claims before running ads.'});}
+  if(hasVideo){score+=10;}else{feedback.push({type:'warn',msg:'No video assets. BBT Reels and UGC consistently outperform static by 3–5x. Prioritize getting video.'});}
+  if(document.querySelectorAll('#avatar-pain .tag.sel').length>0){score+=10;}else{feedback.push({type:'info',msg:'Avatar pain not defined. Knowing their #1 pain sharpens your hook significantly.'});}
+  if(document.querySelectorAll('#avatar-want .tag.sel').length>0){score+=10;}
+
+  const grade = score>=85?'Ready to launch':'needs-work';
+  const gradeLabel = score>=85?'✓ Strong brief':score>=60?'⚠ Almost there':'✗ Incomplete';
+  const gradeBadge = score>=85?'bg':score>=60?'ba':'br';
+  document.getElementById('brief-score-badge').textContent=gradeLabel;
+  document.getElementById('brief-score-badge').className=`badge b${gradeBadge}`;
+
+  const feedbackHtml = feedback.length===0?
+    '<div class="good-box">✓ Brief looks solid. All key fields are filled. Proceed to the next step.</div>':
+    feedback.map(f=>`<div class="${f.type==='warn'?'warn-box':'info-box'}" style="margin-bottom:6px">${f.msg}</div>`).join('');
+  document.getElementById('brief-feedback').innerHTML=feedbackHtml;
+
+  card.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// ===== FORMULA SELECTOR =====
+const FORMULA_GUIDANCE = {
+  pas: 'PAS — Problem → Agitate → Solve: Open by naming their exact pain (can\'t stay consistent). Make it feel urgent (this is costing you months of your life). Then present BBT as the logical solution. Most effective all-around TOFU formula for BBT.',
+  aida: 'AIDA — Attention → Interest → Desire → Action: Hook stops the scroll. Story/value builds interest. Social proof or outcome creates desire. CTA closes it. Works at any funnel stage — most flexible structure.',
+  bab: 'BAB — Before → After → Bridge: Paint where they are now (frustrated, inconsistent). Show where they want to be (confident, consistent, results). Position BBT as the only bridge between those two states. Best for transformation and challenge ads.',
+  fab: 'FAB — Feature → Advantage → Benefit: Lead with a BBT feature, explain why it beats the alternative, land on the personal benefit. Best for MOFU/BOFU where they already know their problem and want to understand why BBT specifically.',
+  pppp: '4P — Promise → Picture → Proof → Push: Make a bold, specific promise. Paint the future state vividly. Back it with real proof (member result, stat, or story). Push to action with urgency. Strong for P2 challenge launch ads.',
+  star: 'STAR — Situation → Task → Action → Result: Tell a real member\'s story. Set their situation, the challenge they faced, what BBT did for them, and the outcome. Best for UGC and testimonial-style videos.',
+  quest: 'QUEST — Qualify → Understand → Educate → Stimulate → Transition: Most sophisticated formula. Qualify the exact viewer first so the wrong people self-select out. Show empathy. Teach something. Build vision. Transition to CTA. Best for P3 Accountability and P7 Personalized Performance.',
+  oath: 'OATH — Use this as a diagnostic, not a copy formula. Identify where your audience sits on the awareness spectrum. Oblivious = educate first. Apathetic = interrupt with something surprising. Thinking = show proof and options. Hurting = go straight to the solution, no setup needed.',
+};
+
+function selectFormula(f){
+  document.querySelectorAll('[id^="formula-"]').forEach(el=>el.classList.remove('sel'));
+  const el = document.getElementById('formula-'+f);
+  if(el) el.classList.add('sel');
+  window._selectedFormula = f;
+  const g = document.getElementById('formula-guidance');
+  if(g){
+    g.style.display='block';
+    g.innerHTML = `<strong>${f.toUpperCase()}:</strong> ${FORMULA_GUIDANCE[f]}`;
+  }
+}
+
+
+
+function populateBriefCard(){
+  if(!selectedProgram) return;
+  const p=PROGRAMS[selectedProgram];
+  document.getElementById('brief-prog-card').innerHTML=buildProgCard(selectedProgram,'');
+  // Auto-select recommended funnel
+  const recFunnel = PROG_FUNNEL_REC[selectedProgram] || 'TOFU';
+  selectFunnel(recFunnel);
+  const recBadge = document.getElementById('fn-'+recFunnel+'-rec');
+  if(recBadge) recBadge.style.display='block';
+  // Pre-fill fields from program
+  const avatarEl=document.getElementById('avatar');
+  if(avatarEl) avatarEl.value=p.avatar;
+  const offerEl=document.getElementById('offer');
+  if(offerEl) offerEl.value=p.entry;
+  // Default test type by program
+  const testDefault=selectedProgram==='p2'?'challenge':selectedProgram==='p4'||selectedProgram==='p3'?'evergreen':'ramp';
+  selectTest(testDefault);
+  // Set today as default start date
+  const today=new Date().toISOString().split('T')[0];
+  const startEl=document.getElementById('start-date');
+  if(startEl&&!startEl.value) startEl.value=today;
+  updateDates();
+  updateNaming();
+}
+
+function populateGeoCard(){
+  if(!selectedProgram) return;
+  const p=PROGRAMS[selectedProgram];
+  document.getElementById('geo-strategy-card').innerHTML=`<div class="info-box"><strong style="display:block;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">${p.name} — Geo strategy</strong>${p.geo}</div>`;
+  buildZipGrid();
+}
+
+function populateHookCard(){
+  if(!selectedProgram) return;
+  const p=PROGRAMS[selectedProgram];
+  document.getElementById('hook-strategy-card').innerHTML=`<div class="info-box"><strong style="display:block;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">${p.name} — Ad angle</strong>${p.angle}</div>`;
+  loadHooks();
+}
+
+// ===== ZIP GRID =====
+function buildZipGrid(){
+  if(!selectedProgram) return;
+  const p=PROGRAMS[selectedProgram];
+  const g=document.getElementById('zip-grid');
+  if(!g) return;
+
+  if(selectedProgram==='p1'){
+    g.innerHTML='<div style="font-size:13px;color:#555;padding:.5rem 0">PushPlay is a digital product — no ZIP code restriction. Run nationally or regionally.</div>';
+    document.getElementById('zip-guidance').textContent='PushPlay is digital — ZIP targeting does not apply. Leave geo open or target regionally.';
+    return;
+  }
+
+  document.getElementById('zip-guidance').textContent=`Recommended ZIPs for ${p.name} are pre-selected (green). Adjust as needed. ZIPs marked "Avoid" are generally too far or poor fit for in-person BBT programs.`;
+
+  // Group by area
+  const areas = [...new Set(ALL_ZIPS.map(z=>z.area))];
+  let html = '';
+  areas.forEach(area=>{
+    const zipsInArea = ALL_ZIPS.filter(z=>z.area===area);
+    html += `<div style="grid-column:1/-1;font-size:10px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.06em;padding:8px 0 4px;margin-top:4px">${area}</div>`;
+    zipsInArea.forEach(z=>{
+      const isRec = p.zips.includes(z.code);
+      const isAvoid = AVOID_ZIPS.includes(z.code);
+      const cls = isRec ? 'auto-sel' : '';
+      const badge = isAvoid
+        ? '<span class="zip-badge avoid">Avoid</span>'
+        : isRec ? '<span class="zip-badge core">Core</span>'
+        : '<span class="zip-badge bonus">Optional</span>';
+      html += `<div class="zip-item ${cls}" id="zip-${z.code}" onclick="toggleZip('${z.code}')">
+        <input type="checkbox" ${isRec?'checked':''} style="pointer-events:none;accent-color:#27500A">
+        <div><div class="zip-code">${z.code}</div><div class="zip-name">${z.name}</div></div>
+        ${badge}
+      </div>`;
+    });
+  });
+  g.innerHTML = html;
+  updateZipPreview();
+}
+
+function toggleZip(code){
+  const el=document.getElementById('zip-'+code);
+  const cb=el.querySelector('input');
+  const wasSelected=el.classList.contains('auto-sel')||el.classList.contains('sel');
+  el.classList.remove('auto-sel','sel');
+  if(!wasSelected){el.classList.add('sel');cb.checked=true;}
+  else{cb.checked=false;}
+  updateZipPreview();
+}
+
+function updateZipPreview(){
+  const sel=ALL_ZIPS.filter(z=>{
+    const el=document.getElementById('zip-'+z.code);
+    return el&&(el.classList.contains('sel')||el.classList.contains('auto-sel'));
+  });
+  const cnt=document.getElementById('zip-count');
+  const prev=document.getElementById('zip-preview');
+  if(cnt) cnt.textContent=sel.length;
+  if(prev) prev.textContent=sel.map(z=>z.code).join(', ');
+}
+
+// ===== HOOKS =====
+function loadHooks(){
+  if(!selectedProgram) return;
+  const p=PROGRAMS[selectedProgram];
+  const style=document.getElementById('style-hormozi')?.classList.contains('sel')?'hormozi':'shiver';
+  const hooks=p.hooks[style]||[];
+  const container=document.getElementById('hook-list');
+  if(!container) return;
+  container.innerHTML=hooks.map(h=>`<div class="hook-card" onclick="useHook(this,'${h.replace(/'/g,"\\'")}')">${h}</div>`).join('');
+}
+
+function useHook(el,text){
+  document.querySelectorAll('.hook-card').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('hook').value=text;
+}
+
+// ===== STYLE SELECTOR =====
+function selectStyle(s){
+  document.getElementById('style-hormozi').classList.remove('sel');
+  document.getElementById('style-shiver').classList.remove('sel');
+  document.getElementById('style-'+s).classList.add('sel');
+  loadHooks();
+}
+
+// ===== GENERIC OPT SELECTOR =====
+function selectOpt(group,ids,activeId){
+  ids.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('sel');});
+  const active=document.getElementById(activeId);
+  if(active) active.classList.add('sel');
+}
+
+// ===== TAG TOGGLES =====
+function toggleTag(el){
+  el.classList.toggle('sel');
+  updateAgePreview();
+  updateIntPreview();
+}
+
+function updateAgePreview(){
+  const ages=[...document.querySelectorAll('#age-tags .tag.sel')].map(t=>t.dataset.val);
+  const el=document.getElementById('age-preview');
+  if(el) el.textContent=ages.join(', ')||'None selected';
+}
+
+function updateIntPreview(){
+  const ints=[...document.querySelectorAll('#int-fitness .tag.sel, #int-health .tag.sel, #int-life .tag.sel, #int-demo .tag.sel')].map(t=>t.dataset.val);
+  const el=document.getElementById('int-preview');
+  if(el) el.textContent=ints.join(', ')||'None';
+}
+
+// ===== NAMING =====
+function updateNaming(){
+  if(!selectedProgram) return;
+  const p=PROGRAMS[selectedProgram];
+  const funnelEl=document.querySelector('[id^="fn-"].sel');
+  const funnel=funnelEl?funnelEl.id.replace('fn-',''):'TOFU';
+  const goal=window._selectedGoal||'Lead';
+  const offer=document.getElementById('offer')?.value||p.entry;
+  const offerShort=offer.split(' ').slice(0,2).join('').replace(/[^a-zA-Z0-9]/g,'').slice(0,8);
+  const budget=document.getElementById('daily-budget')?.value||'$20/day';
+  const budgetNum=budget.replace('/day','').replace('$','');
+  const radEl=document.querySelector('[id^="rad-"].sel');
+  const rad=radEl?radEl.id.replace('rad-','')+'mi':'10mi';
+  const name=`BBT | ${funnel} | ${p.tier}-${p.name.split(' ').pop()} | GOAL-${goal} | GEO-CLT${rad} | OFF-${offerShort} | CBO$${budgetNum}`;
+  const el=document.getElementById('campaign-name-preview');
+  if(el) el.textContent=name;
+}
+
+// ===== SUMMARY =====
+function buildSummary(){
+  if(!selectedProgram) return;
+  const p=PROGRAMS[selectedProgram];
+  const funnelEl=document.querySelector('[id^="fn-"].sel');
+  const funnel=funnelEl?funnelEl.id.replace('fn-',''):'—';
+  const goal=window._selectedGoal||'—';
+  const offer=document.getElementById('offer')?.value||'—';
+  const face=document.getElementById('face')?.value||'—';
+  const avatar=document.getElementById('avatar')?.value||'—';
+  const budget=document.getElementById('daily-budget')?.value||'—';
+  const startDate=document.getElementById('start-date')?.value||'—';
+  const endDate=document.getElementById('end-date')?.value||'Ongoing';
+  const testType=window._selectedTest?TEST_DATA[window._selectedTest]?.label||window._selectedTest:'—';
+  const radEl=document.querySelector('[id^="rad-"].sel');
+  const rad=radEl?radEl.id.replace('rad-','')+ ' miles':'—';
+  const gender=document.querySelector('[id^="gen-"].sel')?.id?.replace('gen-','')||'—';
+  const ages=[...document.querySelectorAll('#age-tags .tag.sel')].map(t=>t.dataset.val).join(', ')||'—';
+  const ints=[...document.querySelectorAll('#int-fitness .tag.sel, #int-health .tag.sel, #int-life .tag.sel, #int-demo .tag.sel')].map(t=>t.dataset.val).join(', ')||'—';
+  const sel=ALL_ZIPS.filter(z=>{const el=document.getElementById('zip-'+z.code);return el&&(el.classList.contains('sel')||el.classList.contains('auto-sel'));}).map(z=>z.code).join(', ')||'National (PushPlay)';
+  const plEl=document.querySelector('[id^="pl-"].sel');
+  const placement=plEl?plEl.id.replace('pl-',''):'advantage';
+  const style=document.getElementById('style-hormozi')?.classList.contains('sel')?'Hormozi method':'Dr. Shiver method';
+  const hook=document.getElementById('hook')?.value||'—';
+  const headline=document.getElementById('headline')?.value||'—';
+  const ctaEl=document.querySelector('[id^="cta-"].sel');
+  const cta=ctaEl?ctaEl.id.replace('cta-',''):'—';
+  const crEl=document.querySelector('[id^="cr-"].sel');
+  const creative=crEl?crEl.id.replace('cr-',''):'—';
+  const aspect=document.getElementById('aspect')?.value||'—';
+  const radShort=rad.replace(' miles','mi');
+  document.getElementById('sum-campaign').textContent=`BBT | ${funnel} | ${p.tier}-${p.name.split(' ').pop()} | GOAL-${goal} | GEO-CLT${radShort} | OFF-${offer.slice(0,10)} | CBO${budget.replace('/day','')}`;
+  document.getElementById('sum-adset').textContent=`${funnel} – Charlotte – ${gender} ${ages} – ${rad}`;
+  document.getElementById('sum-ad').textContent=`${funnel} – ${p.tier} – ${style.split(' ')[0]} – ${creative} – V1`;
+  const rows=[
+    ['PROGRAM',''],['Program & tier',`${p.tier} — ${p.name}`],['Entry offer',offer],['Competitive note',p.competitive.slice(0,80)+'...'],
+    ['CAMPAIGN',''],['Funnel',funnel],['Goal',goal],['Test type',testType],['Start date',startDate],['End date',endDate],['Face',face],['Avatar',avatar],['Budget',budget],
+    ['AUDIENCE',''],['ZIP codes',sel],['Radius',rad],['Age range',ages],['Gender',gender],['Interests',ints],['Placement',placement],
+    ['CREATIVE & COPY',''],['Style',style],['Hook',hook.slice(0,80)+(hook.length>80?'…':'')],['Headline',headline],['CTA',cta],['Creative type',creative],['Format',aspect],
+  ];
+  document.getElementById('summary-content').innerHTML=rows.map(([k,v])=>
+    !v?`<div class="sum-section">${k}</div>`:`<div class="sum-row"><div class="sum-key">${k}</div><div class="sum-val">${v}</div></div>`
+  ).join('');
+}
+
+function copySummary(){
+  const rows=document.querySelectorAll('.sum-row');
+  let txt='BBT AD BUILD SUMMARY\n'+'─'.repeat(40)+'\n';
+  rows.forEach(r=>{txt+=`${r.querySelector('.sum-key').textContent}: ${r.querySelector('.sum-val').textContent}\n`;});
+  navigator.clipboard.writeText(txt).then(()=>alert('Copied!')).catch(()=>alert('Select and copy manually.'));
+}
+
+// ===== QA =====
+const QA=[
+  ['Campaign','Correct Meta campaign objective is selected'],
+  ['Campaign','Campaign name follows the BBT naming convention'],
+  ['Campaign','Funnel stage is correct (TOFU / MOFU / BOFU)'],
+  ['Campaign','Budget type (CBO vs ABO) is intentional'],
+  ['Campaign','Daily budget is correct and sufficient for learning phase'],
+  ['Campaign','Campaign start date is correct'],
+  ['Campaign','Account time zone matches campaign time zone'],
+  ['Ad Set','Target audience is correct for this program'],
+  ['Ad Set','ZIP codes are correct and radius is program-appropriate'],
+  ['Ad Set','Age range matches program avatar'],
+  ['Ad Set','Gender targeting is intentional (confirm — not autopilot)'],
+  ['Ad Set','Interest stack matches funnel stage — not over-narrowed'],
+  ['Ad Set','Advantage+ placements is ON (or manual placement is intentional)'],
+  ['Ad Set','Optimization event matches the campaign objective'],
+  ['Ad Set','No block lists, topic exclusions, or inventory filters applied'],
+  ['Creative & Copy','Correct creative file is uploaded'],
+  ['Creative & Copy','Creative is formatted correctly on mobile (9:16 or 4:5)'],
+  ['Creative & Copy','Captions / subtitles are visible and readable'],
+  ['Creative & Copy','Hook text appears on-screen in the first 3 seconds'],
+  ['Creative & Copy','Primary copy is compliant — no false claims or weight promises'],
+  ['Creative & Copy','Headline is correct (40 character max)'],
+  ['Creative & Copy','CTA button matches the offer for this program'],
+  ['Destination','Correct destination selected: Instant Form, Website, or Messenger'],
+  ['Lead Form','Lead form is correct for this program and funnel stage'],
+  ['Lead Form','Full name, phone, and email fields are included'],
+  ['Lead Form','Privacy policy link is present and correct'],
+  ['Lead Form','Thank-you screen is configured with clear next step'],
+  ['GHL Integration','Facebook account is connected in GoHighLevel'],
+  ['GHL Integration','Lead form is visible in GHL Facebook integrations'],
+  ['GHL Integration','Form fields are mapped: name → name, phone → phone, email → email'],
+  ['GHL Integration','Correct workflow trigger set: Facebook Lead Form Submitted'],
+  ['GHL Integration','Workflow is active and does not conflict with other workflows'],
+  ['GHL Integration','Add-to-pipeline action exists with correct pipeline and stage'],
+  ['Testing','Test lead submitted with a fresh email and phone number'],
+  ['Testing','Test lead appears in GoHighLevel contacts correctly'],
+  ['Testing','Test lead appears in the correct pipeline stage'],
+  ['Testing','Automated workflow fires and messages send successfully'],
+  ['Testing','Pixel fires PageView on the destination URL (check Test Events)'],
+];
+
+function buildQA(){
+  let sec=''; let html='';
+  QA.forEach((item,i)=>{
+    if(item[0]!==sec){sec=item[0];html+=`<div class="cl-section">${sec}</div>`;}
+    html+=`<div class="cl-item" id="qa-${i}"><input type="checkbox" id="qacb-${i}" onchange="qaCheck(${i})"><label for="qacb-${i}">${item[1]}</label></div>`;
+  });
+  document.getElementById('qa-list').innerHTML=html;
+  document.getElementById('qa-total').textContent=QA.length;
+  document.getElementById('qa-done').textContent=0;
+}
+
+function qaCheck(i){
+  const item=document.getElementById('qa-'+i);
+  const cb=document.getElementById('qacb-'+i);
+  item.classList.toggle('checked',cb.checked);
+  const done=document.querySelectorAll('#qa-list input:checked').length;
+  document.getElementById('qa-done').textContent=done;
+  const banner=document.getElementById('launch-banner');
+  if(banner) banner.style.display=done===QA.length?'flex':'none';
+}
+
+function clToggle(id){
+  const item=document.getElementById(id);
+  const cb=item.querySelector('input');
+  item.classList.toggle('checked',cb.checked);
+}
+
+// ===== TRACKER =====
+function logAd(){
+  const ad={
+    id:Date.now(),
+    date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'}),
+    prog:document.getElementById('tr-prog').value,
+    style:document.getElementById('tr-style').value,
+    status:document.getElementById('tr-status').value,
+    budget:document.getElementById('tr-budget').value||'—',
+    cpl:document.getElementById('tr-cpl').value||'—',
+    ctr:document.getElementById('tr-ctr').value||'—',
+    leads:document.getElementById('tr-leads').value||'—',
+    calls:document.getElementById('tr-calls').value||'—',
+    sales:document.getElementById('tr-sales').value||'—',
+    hook:document.getElementById('tr-hook').value||'—',
+    notes:document.getElementById('tr-notes').value||'—',
+  };
+  adLog.unshift(ad);
+  localStorage.setItem('bbt_ads_v2',JSON.stringify(adLog));
+  renderTracker();
+  alert('Saved!');
+}
+
+// ===== META EXECUTION RECIPE =====
+function renderRecipe(){
+  if(!selectedProgram){
+    document.getElementById('recipe-content').innerHTML='<div class="info-box">Select a program in Step 1 first, then complete the build steps to generate your execution recipe.</div>';
+    return;
+  }
+  const p=PROGRAMS[selectedProgram];
+  const funnelEl=document.querySelector('[id^="fn-"].sel');
+  const funnel=funnelEl?funnelEl.id.replace('fn-',''):'TOFU';
+  const goal=window._selectedGoal||'Lead';
+  const offer=document.getElementById('offer')?.value||p.entry;
+  const face=document.getElementById('face')?.value||'Tyler';
+  const avatar=document.getElementById('avatar')?.value||p.avatar;
+  const budget=document.getElementById('daily-budget')?.value||'$20/day';
+  const budgetNum=budget.replace('/day','').replace('$','');
+  const startDate=document.getElementById('start-date')?.value||'[Set start date]';
+  const endDate=document.getElementById('end-date')?.value||'Ongoing (no end date)';
+  const bid=document.getElementById('bid')?.value||'Highest volume';
+  const attribution=document.getElementById('attribution')?.value||'7-day click + 1-day view';
+  const optEvent=document.getElementById('opt-event')?.value||'ThruPlay';
+  const budgetType=document.getElementById('bud-cbo')?.classList.contains('sel')?'CBO':'ABO';
+  const objective=document.querySelector('[id^="obj-"].sel')?.id?.replace('obj-','')||'engagement';
+  const objLabel={'engagement':'Engagement','awareness':'Awareness','traffic':'Traffic','leads':'Leads / Conversions'}[objective]||'Engagement';
+  const radEl=document.querySelector('[id^="rad-"].sel');
+  const radius=radEl?radEl.id.replace('rad-','')+ ' miles':'10 miles';
+  const gender=document.querySelector('[id^="gen-"].sel')?.id?.replace('gen-','')||'Women';
+  const ages=[...document.querySelectorAll('#age-tags .tag.sel')].map(t=>t.dataset.val).join(', ')||'25–54';
+  const ints=[...document.querySelectorAll('#int-fitness .tag.sel, #int-health .tag.sel, #int-life .tag.sel, #int-demo .tag.sel')].map(t=>t.dataset.val).join(', ')||'Fitness & Wellness, Group Fitness';
+  const selZips=ALL_ZIPS.filter(z=>{const el=document.getElementById('zip-'+z.code);return el&&(el.classList.contains('sel')||el.classList.contains('auto-sel'));}).map(z=>z.code).join(', ')||'See program ZIPs';
+  const placement=document.getElementById('pl-adv')?.classList.contains('sel')?'Advantage+ (all placements)':document.getElementById('pl-ig')?.classList.contains('sel')?'Manual — IG only':'Advantage+';
+  const device=document.getElementById('dev-all')?.classList.contains('sel')?'All devices':document.getElementById('dev-mobile')?.classList.contains('sel')?'Mobile only':'All devices';
+  const style=document.getElementById('style-hormozi')?.classList.contains('sel')?'Hormozi method':'Dr. Shiver method';
+  const hook=document.getElementById('hook')?.value||'[Write hook here]';
+  const bodyCopy=document.getElementById('body-copy')?.value||'[Write body copy here]';
+  const headline=document.getElementById('headline')?.value||'[Write headline here]';
+  const description=document.getElementById('description')?.value||'[Write description here]';
+  const ctaEl=document.querySelector('[id^="cta-"].sel');
+  const ctaMap={'cta-book':'Book Now','cta-learn':'Learn More','cta-msg':'Send Message','cta-signup':'Sign Up','cta-visit':'Visit Instagram Profile','cta-apply':'Apply Now'};
+  const cta=ctaEl?ctaMap[ctaEl.id]||'Learn More':'Learn More';
+  const crEl=document.querySelector('[id^="cr-"].sel');
+  const crMap={'cr-reel':'Reel / Short Video','cr-ugc':'UGC Video','cr-coach':'Coach Talking Head','cr-static':'Static Image','cr-carousel':'Carousel','cr-test':'Member Testimonial'};
+  const creative=crEl?crMap[crEl.id]||'Reel / Short Video':'Reel / Short Video';
+  const aspect=document.getElementById('aspect')?.value||'9:16 — 1080×1920';
+  const crLink=document.getElementById('cr-link')?.value||'[Paste Google Drive / Canva link]';
+  const pixelId=document.getElementById('pixel-id')?.value||'[Your Pixel ID]';
+  const ghlPipeline=document.getElementById('ghl-pipeline')?.value||'[Your GHL Pipeline name]';
+  const ghlForm=document.getElementById('ghl-form')?.value||'[Your GHL Form ID]';
+
+  // Campaign name
+  const offerShort=offer.split(' ').slice(0,2).join('').replace(/[^a-zA-Z0-9]/g,'').slice(0,8);
+  const radShort=radius.replace(' miles','mi');
+  const campaignName=`BBT | ${funnel} | ${p.tier}-${p.name.split(' ').pop()} | GOAL-${goal} | GEO-CLT${radShort} | OFF-${offerShort} | CBO$${budgetNum}`;
+  const adsetName=`${funnel} – Charlotte – ${gender} ${ages} – ${radius}`;
+  const adName=`${funnel} – ${p.tier} – ${style.split(' ')[0]} – ${creative.split('/')[0].trim()} – V1`;
+
+  const r=s=>`<div class="recipe-row"><div class="recipe-field">${s.field}</div><div class="recipe-value">${s.value}</div>${s.note?`<div class="recipe-note">${s.note}</div>`:''}</div>`;
+  const sec=s=>`<div class="recipe-section">${s}</div>`;
+  const warn=s=>`<div class="recipe-warn">${s}</div>`;
+  const good=s=>`<div class="recipe-good">${s}</div>`;
+  const step=s=>`<div class="recipe-step">${s}</div>`;
+
+  document.getElementById('recipe-prog-badge').innerHTML=`<span class="badge b${p.color==='bgr'?'gr':p.color}">${p.tier}</span> ${p.name} &nbsp;·&nbsp; ${funnel} &nbsp;·&nbsp; ${new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}`;
+
+  document.getElementById('recipe-content').innerHTML=`
+<div id="printable-recipe">
+
+<div class="recipe-header">
+  <div class="recipe-header-title">BBT Fitness — Meta Ads Execution Recipe</div>
+  <div class="recipe-header-sub">${p.tier} · ${p.name} · ${funnel} · Built ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</div>
+  <div class="recipe-header-note">Open Facebook Ads Manager alongside this document. Work top to bottom. Do not skip fields marked ⚠.</div>
+</div>
+
+${good(`<strong>Before you open Ads Manager, confirm:</strong> Pixel ${pixelId} is firing in Events Manager → Test Events. GHL is connected. Creative file is ready at: ${crLink}`)}
+
+${sec('PHASE 1 — CREATE THE CAMPAIGN')}
+${step('Go to: business.facebook.com → Ads Manager → Green "+ Create" button')}
+
+${r({field:'Buying type',value:'Auction',note:'Never choose Reach & Frequency — not useful for BBT at any budget level'})}
+${r({field:'Campaign objective',value:objLabel,note:{'Engagement':'Best for TOFU video reach and brand familiarity','Awareness':'Good for broad cold reach at low CPM','Traffic':'Use to warm the pixel via site visitors — MOFU prep','Leads / Conversions':'MOFU or BOFU only — do NOT use on cold audiences'}[objLabel]||''})}
+${r({field:'Campaign name',value:`<code>${campaignName}</code>`,note:'Copy this exactly. Naming must show funnel stage, program, geo, offer, and objective'})}
+${r({field:'Special Ad Categories',value:'NONE — leave blank',note:'Fitness is NOT a protected category. Do not select Housing, Employment, Credit, Social Issues, or Political'})}
+${r({field:'A/B Test',value:'OFF — leave unchecked',note:'Only enable if you are running a single-variable test with identical ad sets'})}
+${r({field:'Advantage+ Campaign Budget (CBO)',value:budgetType==='CBO'?'ON — toggle this ON':'OFF — using ABO instead',note:budgetType==='CBO'?'CBO lets Meta find the best-performing ad sets automatically. Recommended.':'Only use ABO when manually split-testing audiences'})}
+${r({field:'Daily budget',value:`$${budgetNum}/day`,note:'Minimum $10–$20/day to exit learning phase. Never go below $10 — Meta will throttle delivery'})}
+${r({field:'Campaign bid strategy',value:'Highest volume',note:'NEVER use ROAS goal, Bid cap, or Cost-per-result goal at TOFU. They strangle learning on cold audiences.'})}
+${r({field:'Budget scheduling',value:'Run continuously starting today',note:'For TOFU, leave end date OFF — let it run until you manually pause. For challenges, set specific end date.'})}
+${r({field:'Start date',value:startDate,note:'Set to today or your planned launch date. Give the pixel 24–48hrs after launch to populate data.'})}
+
+${warn('⚠ Do NOT switch CBO → ABO after the campaign launches. Do NOT use CBO with only 1 ad set — it defeats the purpose.')}
+
+${sec('PHASE 2 — CREATE THE AD SET')}
+${step('Click "+ Add Ad Set" inside your new campaign')}
+
+${r({field:'Ad set name',value:`<code>${adsetName}</code>`,note:'Naming must show funnel stage, audience type, gender, age range, and radius'})}
+${r({field:'Performance goal',value:{'Engagement':'Maximize reach of ads (or ThruPlay for video-heavy)','Awareness':'Maximize reach of ads','Traffic':'Maximize number of landing page views','Leads / Conversions':optEvent}[objLabel]||'Maximize reach of ads',note:'Match this to your campaign objective exactly. Mismatched performance goals cause Meta to optimize for the wrong outcome.'})}
+${r({field:'Facebook Page',value:'BBT North Charlotte (select your location-specific page)',note:'Use the page that matches the program and location. Do NOT use a personal profile.'})}
+${r({field:'Dynamic creative',value:'OFF — leave unchecked for now',note:'Only turn ON if you are uploading multiple headlines, images, and copy variants and want Meta to mix and match'})}
+${r({field:'Budget & schedule',value:`Controlled at Campaign level (CBO $${budgetNum}/day)`,note:'If using ABO, set individual ad set budget here instead'})}
+
+${sec('— Audience Controls —')}
+${r({field:'Locations',value:selectedProgram==='p1'?'United States (national — PushPlay is digital)':selZips?`Charlotte metro ZIPs: ${selZips}`:'Charlotte, NC + '+radius+' radius',note:selectedProgram==='p1'?'PushPlay is a digital product — no geographic restriction needed':'Enter each ZIP code individually OR use radius targeting around the gym address: 11835 Sam Roper Dr, Charlotte, NC 28262'})}
+${r({field:'Radius',value:selectedProgram==='p1'?'N/A — national targeting':radius+' around BBT gym',note:p.geo})}
+${warn('⚠ Never target: Entire NC, USA/National (except PushPlay), or ZIPs 28210, 28134, 28277, 28270, 28217 — too far or poor fit for BBT in-person programs')}
+${r({field:'Age',value:ages,note:'25–55 is the ideal BBT buyer range. Pre-set for your program. Only adjust if running a specific age-split test.'})}
+${r({field:'Gender',value:gender.charAt(0).toUpperCase()+gender.slice(1),note:'BBT targets Women by default for most programs. Confirm this intentionally every single campaign — never leave on autopilot.'})}
+${r({field:'Detailed targeting (Interests)',value:ints||'Leave blank (Broad)',note:'For TOFU: use broad OR one interest stack — never both "narrowed" (AND) together. Never use narrow layered interests at TOFU.'})}
+${r({field:'Advantage+ audience',value:'ON — leave toggled ON',note:'Meta uses broad learning to find the best new people. Keep this ON for TOFU. MOFU: sometimes ON. BOFU: OFF for full control.'})}
+${r({field:'Custom audiences',value:funnel==='TOFU'?'NONE — cold ads, no warm audiences needed':funnel==='MOFU'?'Add: Website visitors 30d, Page engagers 30d':'Add: Past leads, Booked calls, Website visitors 7d',note:'TOFU = no custom audiences. MOFU/BOFU = add warm retargeting audiences here.'})}
+${r({field:'Exclusions',value:'Exclude: Current BBT members (if you have a customer list uploaded)',note:'Optional but recommended — prevents wasting spend on people who are already clients'})}
+
+${sec('— Placements —')}
+${r({field:'Placements',value:placement,note:'Advantage+ is almost always correct for TOFU. Meta optimizes delivery across all surfaces for lowest CPM.'})}
+${r({field:'Inventory filter',value:'Expanded inventory — ALWAYS select this',note:'⚠ NEVER choose Limited or Standard inventory. Those reduce reach and spike CPM dramatically. BBT Fitness is NOT a sensitive brand category.'})}
+${r({field:'Content type exclusions',value:'NONE — leave all unchecked',note:'Meta already blocks violent/harmful content. Additional exclusions reduce reach. Do not touch for any BBT campaign.'})}
+${r({field:'Block lists',value:'NONE — do not apply',note:'Block lists are for national brands protecting against news publishers. Not needed for BBT. Using one = significant performance loss.'})}
+${r({field:'Topic exclusions',value:'NONE — leave blank',note:'Topic exclusions reduce inventory and raise CPM at TOFU. BBT should never exclude topics.'})}
+${r({field:'Device targeting',value:device,note:'All devices is correct for almost all BBT ads. Mobile only only if running a Reels-exclusive campaign.'})}
+
+${sec('— Attribution —')}
+${r({field:'Attribution setting',value:attribution,note:'7-day click + 1-day view is the TOFU standard. People may see your ad today and act tomorrow — view-through matters. Never use Off.'})}
+${r({field:'Click window',value:'7-day click',note:'1-day click is too strict for cold audiences. 7-day click captures people who needed time to decide.'})}
+${r({field:'View window',value:funnel==='TOFU'?'1-day view — turn ON for TOFU video':'1-day engaged view only if volume is low',note:'For TOFU brand awareness, 1-day view ON captures people who watched your video and then acted. Keep it on.'})}
+
+${sec('PHASE 3 — CREATE THE AD')}
+${step('Click "+ Add Ad" inside your new ad set')}
+
+${r({field:'Ad name',value:`<code>${adName}</code>`,note:'Naming must show funnel stage, program tier, style, and creative type. Include V1/V2/V3 for versioning.'})}
+${r({field:'Partnership ads',value:'OFF',note:'Only used for influencer brand partnership campaigns. Not needed for standard BBT ads.'})}
+${r({field:'Identity: Facebook Page',value:'BBT North Charlotte',note:'Must match the page you selected at the Ad Set level. Creates unified brand identity across all placements.'})}
+${r({field:'Identity: Instagram Profile',value:'bbt_northcharlotte (or your BBT IG handle)',note:'Links the ad to your IG profile. Use the correct location-specific account.'})}
+${r({field:'Format',value:creative.includes('Carousel')?'Carousel':'Single image or video',note:'Single image or video is correct for Reels, UGC, talking head, and static ads. Use Carousel only for carousel creative.'})}
+${r({field:'Multi-advertiser ads',value:'ON — leave toggled on',note:'Increases reach and lowers CPM by allowing your ad to appear alongside similar businesses. Safe to leave on for BBT.'})}
+
+${sec('— Media —')}
+${r({field:'Creative file',value:crLink||'[Upload from Google Drive / Canva]',note:'Upload your creative file here. Must match the format spec below exactly.'})}
+${r({field:'Required format',value:aspect,note:'Facebook/Instagram feeds → 4:5 (1080×1350). Stories/Reels → 9:16 (1080×1920). Carousel → 1:1 (1080×1080). Wrong ratio = cropped ad = bad first impression.'})}
+${r({field:'Optimize creative for each person',value:'ON',note:'Meta automatically tests minor variations to match viewer preferences. Safe to leave on — it helps performance.'})}
+${r({field:'Captions / subtitles',value:'Required — add captions to all video ads',note:'85% of Facebook video is watched with sound OFF. If your video has no captions, most people will scroll past it.'})}
+
+${sec('— Copy —')}
+${r({field:'Primary text',value:`<div class="recipe-copy-block">${bodyCopy.replace(/\n/g,'<br>')}</div>`,note:'125–220 words max. Starts with the hook. Builds the value or story. Closes with the CTA. Must be compliant — no weight loss promises or guaranteed results.'})}
+${r({field:'Headline',value:`<strong>${headline||'[Your headline here]'}</strong>`,note:'40 character max. Short, punchy, benefit-focused. This is what people read first on feed placements.'})}
+${r({field:'Description',value:`${description||'[Your description here]'}`,note:'30 character max. Supports the headline. Optional but recommended.'})}
+${r({field:'Call to action button',value:cta,note:{'Book Now':'Strong CTA — use for consultation or trial offers (P3, P5, P6, P7)','Learn More':'Soft CTA — use for awareness plays and TOFU (P1, P2, P4)','Sign Up':'Challenge entry and lead forms (P2)','Apply Now':'Exclusive offers and qualifying programs (P6, P7)','Send Message':'DM-based flows in GHL','Visit Instagram Profile':'Profile visit campaigns only'}[cta]||''})}
+
+${sec('— Hook (first 3–5 seconds on-screen) —')}
+${r({field:'Opening hook',value:`<div class="recipe-copy-block">${hook}</div>`,note:'This must appear on-screen as text overlay in the first 3 seconds of any video ad. If it only exists in the voiceover, people watching on mute will not see it. Add it as an overlay in your video editor.'})}
+
+${sec('— Destination & Tracking —')}
+${r({field:'Website URL',value:funnel==='TOFU'?'OFF — TOFU awareness does not require a click destination':'[Your landing page or booking link]',note:'For pure TOFU engagement/awareness campaigns, no URL needed. For lead gen or traffic campaigns, use your GHL funnel or booking page URL.'})}
+${r({field:'URL parameters (UTM)',value:'<code>utm_source=facebook&utm_medium=paid&utm_campaign={{campaign.name}}&utm_content={{ad.name}}</code>',note:'Paste this exactly into the URL Parameters field at the ad level. Never free-type random UTMs — keep naming consistent across all campaigns.'})}
+${r({field:'Event details',value:'OFF — not needed unless promoting a specific in-person event',note:'Only use this section if you are running a Facebook Events ad for a specific BBT class, challenge launch, or open house.'})}
+${r({field:'Tracking: Website events',value:`Pixel ID: ${pixelId}`,note:'Confirm the correct pixel is selected here. Only one pixel should appear. If you see multiple, stop and fix this before launching.'})}
+${r({field:'Tracking: App events',value:'OFF — not applicable',note:'Only used if BBT has a native mobile app with SDK tracking. Does not apply to PushPlay unless that app has Facebook SDK.'})}
+${r({field:'Tracking: Offline events',value:'OFF for TOFU',note:'Offline events are for BOFU only — used when tracking offline conversions like in-person sign-ups tied back to ad spend.'})}
+${r({field:'Third-party reporting',value:'OFF',note:'Not needed for Meta-only measurement. Only add if you are using a third-party attribution tool like Hyros or Northbeam.'})}
+
+${sec('PHASE 4 — REVIEW & PUBLISH')}
+${step('Click "Review" in the top right corner of Ads Manager. Do not publish until every item below is confirmed.')}
+
+${good(`<strong>Final confirmation checklist before you hit Publish:</strong><br><br>
+☐ Campaign objective matches funnel stage (TOFU = Engagement or Awareness)<br>
+☐ Campaign name follows BBT naming convention exactly<br>
+☐ Budget is correct ($${budgetNum}/day) and CBO is ON<br>
+☐ Ad set name is correct<br>
+☐ ZIP codes entered correctly — no excluded ZIPs included<br>
+☐ Age range: ${ages} · Gender: ${gender}<br>
+☐ Advantage+ placements is ON<br>
+☐ No inventory filters, block lists, or topic exclusions applied<br>
+☐ Creative file uploaded in correct format (${aspect})<br>
+☐ Captions/subtitles are ON<br>
+☐ Hook text appears on-screen in first 3 seconds<br>
+☐ Primary text is compliant (no false claims, no weight promises)<br>
+☐ Headline: "${headline}" (under 40 chars)<br>
+☐ CTA button: ${cta}<br>
+☐ Pixel ${pixelId} is selected in tracking<br>
+☐ UTM parameters are pasted in<br>
+☐ Test lead submitted and confirmed in GHL pipeline: ${ghlPipeline}<br>
+☐ GHL workflow is active and messages send correctly`)}
+
+${sec('PHASE 5 — AFTER LAUNCH')}
+${r({field:'Day 1–3',value:'Monitor only — do not pause or edit anything',note:'Wait for 2,000+ impressions per ad before judging CTR. Kill only disapproved or broken ads.'})}
+${r({field:'Day 3–5 check',value:'CTR below 0.8%? Replace hook. CPL 40%+ over target? Swap audience or copy.',note:'This is your first real optimization window. Do not touch before Day 3.'})}
+${r({field:'Week 2',value:'Scale winners +20–30%. Duplicate to new audience. Kill high-CPL ad sets.',note:'Never scale more than 30% at once — it triggers a learning phase reset.'})}
+${r({field:'Weekly refresh',value:'Replace 1–2 creatives per week. Local fatigue hits fast.',note:'Target metrics: CTR (link) ≥ 0.9–1.2% · CPL at or below target · Book rate ≥ 60% · Show rate ≥ 70%'})}
+
+<div class="recipe-footer">
+  BBT Fitness · ${p.tier} ${p.name} · ${funnel} Campaign · Generated ${new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}
+</div>
+
+</div>`;
+}
+
+function exportPDF(){
+  if(!selectedProgram){alert('Complete the build steps first to generate the recipe.');return;}
+  // Hide everything except the recipe page, trigger browser PDF save
+  const style = document.createElement('style');
+  style.id = 'pdf-override';
+  style.textContent = `
+    @media screen {
+      body > * { display: none !important; }
+      .main { display: block !important; margin-left: 0 !important; }
+      .step-page { display: none !important; }
+      #page-14 { display: block !important; padding: 0 !important; }
+      .sidebar, .btn-row, #recipe-prog-badge, .btn { display: none !important; }
+      .page-header h2 { font-size: 18px; margin-bottom: 8px; }
+      .step-tag, .page-header p { display: none; }
+    }
+  `;
+  document.head.appendChild(style);
+  setTimeout(()=>{
+    window.print();
+    setTimeout(()=>{
+      const el = document.getElementById('pdf-override');
+      if(el) el.remove();
+    }, 1500);
+  }, 200);
+}
+
+function copyRecipeText(){
+  const el=document.getElementById('printable-recipe');
+  if(!el){alert('Generate the recipe first.');return;}
+  const text=el.innerText;
+  navigator.clipboard.writeText(text).then(()=>alert('Copied!')).catch(()=>alert('Select and copy manually.'));
+}
+
+function renderTracker(){
+  const out=document.getElementById('tracker-output');
+  if(!adLog.length){out.innerHTML='<p class="empty-state">No ads logged yet.</p>';return;}
+  const statusColor={Draft:'ba',Live:'bg',Paused:'bp',Done:'bgr'};
+  out.innerHTML=`<table class="tracker-table">
+    <tr><th>Date</th><th>Program</th><th>Style</th><th>CPL</th><th>CTR%</th><th>Leads</th><th>Calls</th><th>Sales</th><th>Status</th><th>Notes</th></tr>
+    ${adLog.map(a=>`<tr>
+      <td style="white-space:nowrap;color:#aaa">${a.date}</td>
+      <td style="font-size:11px">${a.prog.split('—')[0].trim()}</td>
+      <td><span class="badge ${a.style==='Hormozi'?'bb':'bp'}">${a.style}</span></td>
+      <td>${a.cpl!=='—'?'$'+a.cpl:a.cpl}</td>
+      <td>${a.ctr!=='—'?a.ctr+'%':a.ctr}</td>
+      <td>${a.leads}</td><td>${a.calls}</td><td>${a.sales}</td>
+      <td><span class="badge ${statusColor[a.status]||'bgr'}">${a.status}</span></td>
+      <td style="font-size:11px;color:#666;max-width:140px">${a.notes.slice(0,60)}${a.notes.length>60?'…':''}</td>
+    </tr>`).join('')}
+  </table>`;
+}
+
+</script>
+
+
+<style>
+/* RECIPE STYLES */
+.recipe-header{background:#1a1a1a;color:#fff;border-radius:10px;padding:1.25rem 1.5rem;margin-bottom:1.25rem}
+.recipe-header-title{font-size:17px;font-weight:600;margin-bottom:4px}
+.recipe-header-sub{font-size:13px;color:#aaa;margin-bottom:4px}
+.recipe-header-note{font-size:12px;color:#888;font-style:italic}
+.recipe-section{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#fff;background:#333;padding:7px 12px;border-radius:6px;margin:16px 0 8px}
+.recipe-step{font-size:13px;color:#185FA5;font-weight:500;padding:6px 0 4px;border-bottom:1px dashed #e0e0d8;margin-bottom:8px}
+.recipe-row{display:grid;grid-template-columns:220px 1fr;gap:10px;padding:8px 0;border-bottom:1px solid #f5f5f2;align-items:start}
+.recipe-field{font-size:12px;font-weight:600;color:#555;padding-top:1px;line-height:1.5}
+.recipe-value{font-size:13px;color:#1a1a1a;line-height:1.6}
+.recipe-value code{background:#f0f0ea;padding:2px 7px;border-radius:4px;font-family:'Courier New',monospace;font-size:11px;word-break:break-all}
+.recipe-note{grid-column:2;font-size:11px;color:#888;line-height:1.5;margin-top:-4px;padding-bottom:2px;font-style:italic}
+.recipe-warn{background:#FAEEDA;border-left:3px solid #BA7517;padding:.625rem .875rem;font-size:12px;color:#633806;line-height:1.6;border-radius:0 6px 6px 0;margin:8px 0}
+.recipe-good{background:#EAF3DE;border-left:3px solid #3B6D11;padding:.875rem 1rem;font-size:13px;color:#27500A;line-height:1.8;border-radius:0 6px 6px 0;margin:8px 0}
+.recipe-copy-block{background:#f8f8f5;border:1px solid #e0e0d8;border-radius:6px;padding:.625rem .875rem;font-size:13px;color:#1a1a1a;line-height:1.7;white-space:pre-wrap;font-family:inherit}
+.recipe-footer{text-align:center;font-size:11px;color:#bbb;padding:1.5rem 0 .5rem;border-top:1px solid #e0e0d8;margin-top:1.5rem}
+
+/* PRINT / PDF STYLES */
+@media print{
+  .sidebar,.btn-row,#recipe-prog-badge,.btn{display:none!important}
+  .main{margin-left:0!important;padding:0!important;max-width:100%!important}
+  .step-page{display:none!important}
+  #page-14{display:block!important}
+  .page-header p,.step-tag{display:none}
+  .page-header h2{font-size:18px;margin-bottom:8px}
+  body{background:#fff}
+  .recipe-row{page-break-inside:avoid}
+  .recipe-section{page-break-before:auto}
+  .recipe-good{page-break-inside:avoid}
+  .card{border:none;padding:0}
+  .prog-card{page-break-inside:avoid}
+}
+</style>
+
+</body>
+</html>
